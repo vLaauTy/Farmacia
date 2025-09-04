@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pacientes - Sistema Farmacia</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <nav class="navbar">
+        <h1>🏥 Sistema Farmacia</h1>
+        <ul>
+            <li><a href="/menu">🏠 Inicio</a></li>
+            <li><a href="/medicos">👨‍⚕️ Médicos</a></li>
+            <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
+            <li><a href="/turnos">📅 Turnos</a></li>
+            <li><a href="/usuarios">👥 Usuarios</a></li>
+            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>👨‍⚕️ Gestión de Pacientes</h2>
+
+
+        <div th:if="${param.error}" class="alert alert-danger">
+            ❌ Error en la operación. Inténtelo nuevamente.
+        </div>
+        <div th:if="${pacientes != null and #lists.size(pacientes) > 0}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>DNI</th>
+                        <th>Teléfono</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="paciente : ${pacientes}">
+                        <td th:text="${paciente.id}">1</td>
+                        <td th:text="${paciente.nombre + ' ' + paciente.apellido}">Juan Pérez</td>
+                        <td th:text="${paciente.dni}">12345678</td>
+                        <td th:text="${paciente.telefono}">11-1234-5678</td>
+                        <td>
+                            <a th:href="@{/pacientes/editar/{id}(id=${paciente.id})}" class="btn btn-warning">✏️
+                                Editar</a>
+                            <form th:action="@{/pacientes/eliminar/{id}(id=${paciente.id})}" method="post"
+                                style="display:inline;">
+                                <button type="submit" class="btn btn-eliminar"
+                                    onclick="return confirm('¿Está seguro de eliminar este paciente?')">🗑️
+                                    Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${pacientes == null or #lists.size(pacientes) == 0}" class="alert">
+            <h3>📋 No hay pacientes registrados</h3>
+            <p>Haga clic en "Nuevo Paciente" para agregar el primer paciente al sistema.</p>
+        </div>
+    </div>
+</body>
+
+</html>

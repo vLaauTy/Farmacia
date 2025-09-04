@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Médicos - Sistema Farmacia</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <nav class="navbar">
+        <h1>🏥 Sistema Farmacia</h1>
+        <ul>
+            <li><a href="/menu">🏠 Inicio</a></li>
+            <li><a href="/medicos">👨‍⚕️ Médicos</a></li>
+            <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
+            <li><a href="/turnos">📅 Turnos</a></li>
+            <li><a href="/usuarios">👥 Usuarios</a></li>
+            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>👨‍⚕️ Gestión de Médicos</h2>
+
+        <!-- Mensajes de estado -->
+        <div th:if="${param.exito}" class="alert alert-success">
+            ✅ Médico registrado exitosamente con rol MÉDICO.
+        </div>
+
+        <div th:if="${param.eliminado}" class="alert alert-success">
+            🗑️ Médico y su usuario de acceso eliminados correctamente.
+        </div>
+
+        <div th:if="${param.error}" class="alert alert-danger">
+            ❌ Error en la operación. Inténtelo nuevamente.
+        </div>
+        <div th:if="${medicos != null and #lists.size(medicos) > 0}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>DNI</th>
+                        <th>Teléfono</th>
+                        <th>Especialidad</th>
+                        <th>Horario</th>
+                        <th>Rol</th>
+                        <th>Turnos Semanales</th>
+                        <th>Turnos Cancelados</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="medico : ${medicos}">
+                        <td th:text="${medico.id}">1</td>
+                        <td>
+                            <strong th:text="${medico.usuario}">dr.ejemplo</strong>
+                            <br><small style="color: #666;">👤 Usuario de login</small>
+                        </td>
+                        <td th:text="${medico.nombre + ' ' + medico.apellido}">Juan Pérez</td>
+                        <td th:text="${medico.dni}">12345678</td>
+                        <td th:text="${medico.telefono}">11-1234-5678</td>
+                        <td th:text="${medico.especialidad}">Cardiología</td>
+                        <td th:text="${medico.horario}">Mañana</td>
+                        <td>
+                            <span
+                                style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                👨‍⚕️ MÉDICO
+                            </span>
+                        </td>
+                        <td th:text="${medico.turnosSemanales}">0</td>
+                        <td th:text="${medico.turnosCancelados}">0</td>
+                        <td>
+                            <a th:href="@{/medicos/ver/{id}(id=${medico.id})}" class="btn btn-info">👁️ Ver</a>
+                            <a th:href="@{/medicos/editar/{id}(id=${medico.id})}" class="btn btn-warning">✏️ Editar</a>
+                            <a th:href="@{/medicos/eliminar/{id}(id=${medico.id})}" class="btn btn-eliminar"
+                                onclick="return confirm('¿Está seguro de eliminar este médico? También se eliminará su usuario de acceso.')">
+                                🗑️ Eliminar</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${medicos == null or #lists.size(medicos) == 0}" class="alert">
+            <h3>📋 No hay médicos registrados</h3>
+            <p>Haga clic en "Nuevo Médico" para agregar el primer médico al sistema.</p>
+            <p><em>Todos los médicos tendrán automáticamente rol "MÉDICO" para acceder al sistema.</em></p>
+        </div>
+    </div>
+</body>
+
+</html>

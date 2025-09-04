@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Paciente - Sistema Farmacia</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-logo">Sistema Farmacia - PACIENTE</div>
+            <div class="navbar-links">
+                <a href="/logout">Cerrar Sesión</a>
+            </div>
+        </nav>
+        <h2 th:text="${paciente.id != null} ? '✏️ Editar Paciente' : '🩺 Registrar Nuevo Paciente'"></h2>
+
+        <!-- DEBUG: Mostrar roles del usuario -->
+        <div style="background-color: #ffcccb; border: 1px solid red; padding: 10px; margin-bottom: 15px;">
+            <strong>Roles del usuario actual:</strong>
+            <span sec:authentication="principal.authorities"></span>
+        </div>
+
+        <form th:action="${paciente.id != null} ? @{'/pacientes/editar/' + ${paciente.id}} : @{/pacientes/guardar}"
+            th:object="${paciente}" method="post">
+            <fieldset>
+                <legend>🩺 Información del Paciente</legend>
+
+                <div>
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" th:field="*{nombre}" id="nombre" placeholder="Ingrese nombre" required>
+
+                    <label for="apellido">Apellido:</label>
+                    <input type="text" th:field="*{apellido}" id="apellido" placeholder="Ingrese apellido" required>
+
+                    <label for="dni">DNI:</label>
+                    <input type="text" th:field="*{dni}" id="dni" placeholder="12345678" pattern="[0-9]{7,8}"
+                        title="DNI de 7 u 8 dígitos" required>
+
+                    <label for="domicillio">Domicilio:</label>
+                    <input type="text" th:field="*{domicillio}" id="domicillio" placeholder="Calle, número, ciudad"
+                        required>
+
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
+                        pattern="[0-9\-\+\(\)\s]+" title="Formato: 11-1234-5678" required>
+
+                    <label for="obraSocial">¿Tiene Obra Social?</label>
+                    <select th:field="*{obraSocial}" id="obraSocial" required>
+                        <option value="">Seleccione</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+
+                    <label for="plan">Plan:</label>
+                    <input type="text" th:field="*{plan}" id="plan" placeholder="Plan de obra social">
+
+                    <label for="afiliado">N° de Afiliado:</label>
+                    <input type="text" th:field="*{afiliado}" id="afiliado" placeholder="Número de afiliado">
+
+                    <label for="numeroTarjeta">N° de Tarjeta:</label>
+                    <input type="text" th:field="*{numeroTarjeta}" id="numeroTarjeta" placeholder="Número de tarjeta">
+                </div>
+
+                <div sec:authorize="hasAuthority('ROLE_MEDICO')">
+                    <label for="historialClinico">Historial Clínico:</label>
+                    <textarea th:field="*{historialClinico}" id="historialClinico"
+                        placeholder="Observaciones, antecedentes, etc."></textarea>
+                </div>
+            </fieldset>
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="submit" class="btn btn-primary"
+                    th:text="${paciente.id != null} ? '💾 Guardar Cambios' : '💾 Registrar Paciente'"></button>
+                <a href="/pacientes" class="btn btn-secondary">❌ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Validación de DNI en tiempo real
+        document.getElementById('dni').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+        });
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador - Sistema Farmacia</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-logo">Sistema Farmacia - ADMINISTRADOR</div>
+        <div class="navbar-links">
+            <span th:text="'Bienvenido, ' + ${username}">Bienvenido, Admin</span>
+            <a href="/logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <h2>Panel de Administración</h2>
+
+        <div>
+            <p>¡Bienvenido al sistema de gestión!</p>
+            <p>Seleccione una opción para continuar:</p>
+        </div>
+
+        <!-- Opciones de menú -->
+        <div>
+
+            <!-- Gestión de Médicos -->
+            <div>
+                <h3>👨‍⚕️ Gestión de Médicos</h3>
+                <p>Administrar médicos del sistema</p>
+                <a href="/medicos/gestion" class="btn btn-editar">Acceder</a>
+            </div>
+
+
+            <div>
+                <h3>👥 Gestión de Pacientes</h3>
+                <p>Administrar pacientes del sistema</p>
+                <a href="/paciente/gestion" class="btn btn-ver">Acceder</a>
+            </div>
+
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
