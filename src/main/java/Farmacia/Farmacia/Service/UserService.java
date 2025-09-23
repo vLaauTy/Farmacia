@@ -17,13 +17,16 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("Buscando usuario: " + username);
         UserModel usuario = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-        System.out.println("Usuario encontrado: " + usuario.getUsername());
+
+        String roleFinal = usuario.getRol().toUpperCase().startsWith("ROLE_")
+                ? usuario.getRol().toUpperCase()
+                : "ROLE_" + usuario.getRol().toUpperCase();
+
         return new User(
                 usuario.getUsername(),
                 usuario.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + usuario.getRol())));
+                Collections.singletonList(new SimpleGrantedAuthority(roleFinal)));
     }
 }

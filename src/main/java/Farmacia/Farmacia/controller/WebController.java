@@ -14,30 +14,30 @@ import Farmacia.Farmacia.Model.Medico;
 @Controller
 @RequestMapping
 public class WebController {
-    
+
     @Autowired
     private MedicoService medicoService;
-    
+
     @GetMapping("/")
     public String menu(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
-            
+
             // Verificar si es ADMIN
             if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
                 model.addAttribute("rol", "ADMIN");
                 model.addAttribute("username", username);
                 return "menu_admin";
             }
-            
+
             // Verificar si es MEDICO
             if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MEDICO"))) {
                 // Buscar el médico en la tabla medico para obtener su nombre
                 Medico medico = medicoService.getAllMedicos().stream()
-                    .filter(m -> m.getUsuario().equals(username))
-                    .findFirst()
-                    .orElse(null);
-                
+                        .filter(m -> m.getUsuario().equals(username))
+                        .findFirst()
+                        .orElse(null);
+
                 if (medico != null) {
                     model.addAttribute("rol", "MEDICO");
                     model.addAttribute("nombreCompleto", medico.getNombre() + " " + medico.getApellido());
@@ -46,7 +46,7 @@ public class WebController {
                 }
             }
         }
-        
+
         // Si no está autenticado o no tiene rol válido, redirigir al login
         return "redirect:/login";
     }

@@ -20,18 +20,25 @@
         </nav>
         <h2 th:text="${medico.id != null} ? '✏️ Editar Médico' : '🩺 Registrar Nuevo Médico'"></h2>
 
-        <!-- Mensajes de error/éxito -->
-        <div th:if="${param.exito}" class="alert alert-success">
-            ✅ Médico registrado exitosamente. Se ha creado su usuario de acceso.
+        <!-- Mensaje de error dinámico -->
+        <div th:if="${error}" class="error-message" style="background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 10px; margin-bottom: 20px; color: #721c24;">
+            <strong>⚠️ Error:</strong> <span th:text="${error}"></span>
         </div>
 
+        <!-- Mensaje de éxito dinámico -->
+        <div th:if="${param.exito}" class="success-message" style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 10px; margin-bottom: 20px; color: #155724;">
+            <strong>✅ Éxito:</strong> 
+            <span th:if="${param.exito[0] == 'medico_guardado'}">Médico registrado correctamente.</span>
+            <span th:if="${param.exito[0] == 'medico_actualizado'}">Médico actualizado correctamente.</span>
+            <span th:if="${param.exito[0] == 'exito' or param.exito[0] == ''}">Operación realizada exitosamente.</span>
+        </div>
+
+        <!-- Mensajes de error por parámetros (legacy) -->
         <div th:if="${param.error}" class="alert alert-danger">
-            <span th:if="${param.error == 'usuario_existente'}">❌ Error: El nombre de usuario ya existe. Elija
-                otro.</span>
+            <span th:if="${param.error == 'usuario_existente'}">❌ Error: El nombre de usuario ya existe. Elija otro.</span>
             <span th:if="${param.error == 'medico_ya_registrado'}">❌ Error: Médico ya registrado con ese DNI.</span>
             <span th:if="${param.error == 'guardado'}">❌ Error al guardar el médico. Inténtelo nuevamente.</span>
-            <span th:if="${param.error == null or param.error == ''}">❌ Ocurrió un error inesperado. Inténtelo
-                nuevamente.</span>
+            <span th:if="${param.error == null or param.error == ''}">❌ Ocurrió un error inesperado. Inténtelo nuevamente.</span>
         </div>
 
         <form th:action="${medico.id != null} ? @{'/medicos/editar/' + ${medico.id}} : @{/medicos/guardar}"
@@ -42,7 +49,8 @@
                 <div sec:authorize="!hasRole('MEDICO')">
                     <label for="usuario">Nombre de Usuario:</label>
                     <input type="text" th:field="*{usuario}" id="usuario" placeholder="Ejemplo: dr.juan.perez"
-                        pattern="^[a-zA-Z0-9._]+$" title="Solo letras, números, puntos y guiones bajos" required>
+                        pattern="^[a-zA-Z0-9._]+$" title="Solo letras, números, puntos y guiones bajos" 
+                        th:class="${error != null and #strings.contains(error, 'usuario') ? 'campo-error' : ''}" required>
 
                     <label for="contraseña">Contraseña:</label>
                     <input type="password" th:field="*{contraseña}" id="contraseña" placeholder="Mínimo 6 caracteres"
@@ -65,7 +73,7 @@
 
                     <label for="dni">DNI:</label>
                     <input type="text" th:field="*{dni}" id="dni" placeholder="12345678" pattern="[0-9]{7,8}"
-                        title="DNI de 7 u 8 dígitos" required>
+                        title="DNI de 7 u 8 dígitos" th:class="${error != null and #strings.contains(error, 'DNI') ? 'campo-error' : ''}" required>
 
                     <label for="domicillio">Domicilio:</label>
                     <input type="text" th:field="*{domicillio}" id="domicillio" placeholder="Calle, número, ciudad"
@@ -137,9 +145,54 @@
             let value = e.target.value.replace(/\D/g, '');
             e.target.value = value;
         });
-
-
     </script>
+
+    <style>
+        /* Mensajes de error y éxito */
+        .error-message {
+            animation: slideIn 0.3s ease-in-out;
+        }
+        
+        .success-message {
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Destacar campo con error */
+        .campo-error {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff5f5 !important;
+        }
+        
+        /* Estilos para alertas legacy */
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
 </body>
 
 </html>

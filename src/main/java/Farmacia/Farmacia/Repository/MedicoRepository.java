@@ -1,6 +1,7 @@
 package Farmacia.Farmacia.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,10 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
     // Buscar médico por DNI
     Medico findByDni(String dni);
+    
+    // Métodos adicionales para validación
+    Optional<Medico> findOptionalByDni(String dni);
+    boolean existsByDni(String dni);
+    Optional<Medico> findByUsuario(String usuario);
+    boolean existsByUsuario(String usuario);
 }

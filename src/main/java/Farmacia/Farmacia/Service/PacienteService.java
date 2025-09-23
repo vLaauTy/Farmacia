@@ -45,4 +45,14 @@ public class PacienteService {
                 .toList();
     }
 
+    public boolean existePacientePorDni(String dni) {
+        return repo.existsByDni(dni);
+    }
+
+    public boolean existePacientePorDniExcluyendoId(String dni, Long id) {
+        return repo.findByDni(dni)
+                .map(paciente -> !paciente.getId().equals(id))
+                .orElse(false);
+    }
+
 }

@@ -52,6 +52,25 @@ public class MedicoService {
 
     // Verifica si existe un médico con el mismo DNI
     public boolean existeMedicoPorDni(String dni) {
-        return repo.findByDni(dni) != null;
+        return repo.existsByDni(dni);
+    }
+
+    // Verifica si existe un médico con el mismo DNI excluyendo un ID específico
+    public boolean existeMedicoPorDniExcluyendoId(String dni, Long id) {
+        return repo.findOptionalByDni(dni)
+                .map(medico -> !medico.getId().equals(id))
+                .orElse(false);
+    }
+
+    // Verifica si existe un médico con el mismo usuario
+    public boolean existeMedicoPorUsuario(String usuario) {
+        return repo.existsByUsuario(usuario);
+    }
+
+    // Verifica si existe un médico con el mismo usuario excluyendo un ID específico
+    public boolean existeMedicoPorUsuarioExcluyendoId(String usuario, Long id) {
+        return repo.findByUsuario(usuario)
+                .map(medico -> !medico.getId().equals(id))
+                .orElse(false);
     }
 }

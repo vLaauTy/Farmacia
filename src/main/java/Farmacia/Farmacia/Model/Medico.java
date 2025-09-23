@@ -17,7 +17,7 @@ public class Medico {
     private String contraseña;
 
     @Column(nullable = false)
-    private String rol;
+    private String rol = "MEDICO";
 
     @Column(nullable = false)
     private String nombre;
@@ -41,6 +41,13 @@ public class Medico {
     private Integer turnosSemanales = 0;
 
     private String horario;
+
+    // Constructor por defecto
+    public Medico() {
+        this.rol = "MEDICO";
+        this.turnosCancelados = 0;
+        this.turnosSemanales = 0;
+    }
 
     public Long getId() {
         return id;
@@ -71,7 +78,8 @@ public class Medico {
     }
 
     public void setRol(String rol) {
-        this.rol = rol;
+        // Siempre forzar que sea MEDICO por seguridad
+        this.rol = "MEDICO";
     }
 
     public String getNombre() {

@@ -41,59 +41,51 @@ public class MedicoController {
 
     @GetMapping("/medicos/nuevo")
     public String mostrarFormulario(Model model) {
-        Medico medico = new Medico();
-        // Inicializar valores por defecto
-        medico.setTurnosCancelados(0);
-        medico.setTurnosSemanales(0);
-        // Forzar rol MEDICO siempre
-        medico.setRol("MEDICO");
-        model.addAttribute("medico", medico);
+        // Si no hay médico en el modelo (primera carga), crear uno nuevo
+        if (!model.containsAttribute("medico")) {
+            model.addAttribute("medico", new Medico());
+        }
         return "formulario_medico";
     }
 
     @PostMapping("/medicos/guardar")
-    public String guardarMedico(@ModelAttribute("medico") Medico medico) {
-        // Asegurar que los valores no sean null
-        if (medico.getTurnosCancelados() == null) {
-            medico.setTurnosCancelados(0);
-        }
-        if (medico.getTurnosSemanales() == null) {
-            medico.setTurnosSemanales(0);
-        }
-
-        // FORZAR que siempre sea MEDICO (seguridad adicional)
-        medico.setRol("MEDICO");
-
+    public String guardarMedico(@ModelAttribute("medico") Medico medico, Model model) {
         // Validar si ya existe un médico con el mismo DNI
         if (medicoService.existeMedicoPorDni(medico.getDni())) {
-            System.out.println("⚠️ Médico ya registrado con ese DNI: " + medico.getDni());
-            return "redirect:/medicos/nuevo?error=medico_ya_registrado";
+            model.addAttribute("medico", medico);
+            model.addAttribute("error", "Ya existe un médico registrado con el DNI: " + medico.getDni());
+            return "formulario_medico";
+        }
+
+        // Validar si ya existe un médico con el mismo usuario
+        if (medicoService.existeMedicoPorUsuario(medico.getUsuario())) {
+            model.addAttribute("medico", medico);
+            model.addAttribute("error", "Ya existe un médico registrado con el usuario: " + medico.getUsuario());
+            return "formulario_medico";
+        }
+
+        // Validar si ya existe un usuario en la tabla usuarios
+        if (userRepository.findByUsername(medico.getUsuario()).isPresent()) {
+            model.addAttribute("medico", medico);
+            model.addAttribute("error", "El nombre de usuario '" + medico.getUsuario() + "' ya está en uso en el sistema");
+            return "formulario_medico";
         }
 
         try {
-            // Guardar el médico
             medicoService.saveMedico(medico);
 
-            // Crear usuario en tabla usuarios SIEMPRE con rol MEDICO
-            // Verificar si el usuario ya existe
-            if (userRepository.findByUsername(medico.getUsuario()).isEmpty()) {
-                UserModel usuario = new UserModel();
-                usuario.setUsername(medico.getUsuario());
-                usuario.setPassword(passwordEncoder.encode(medico.getContraseña()));
-                usuario.setRol("MEDICO"); // SIEMPRE MEDICO
+            // Crear usuario en tabla usuarios
+            UserModel usuario = new UserModel();
+            usuario.setUsername(medico.getUsuario());
+            usuario.setPassword(passwordEncoder.encode(medico.getContraseña()));
+            usuario.setRol("MEDICO");
+            userRepository.save(usuario);
 
-                userRepository.save(usuario);
-                System.out.println("✅ Médico y usuario creados: " + medico.getUsuario() + " con rol: MEDICO");
-            } else {
-                System.out.println("⚠️ Usuario ya existe: " + medico.getUsuario());
-                return "redirect:/medicos/nuevo?error=usuario_existente";
-            }
-
-            return "redirect:/medicos?exito";
+            return "redirect:/medicos?exito=medico_guardado";
         } catch (Exception e) {
-            System.err.println("❌ Error al guardar médico: " + e.getMessage());
-            e.printStackTrace();
-            return "redirect:/medicos/nuevo?error=guardado";
+            model.addAttribute("medico", medico);
+            model.addAttribute("error", "Error al guardar el médico. Por favor, intente nuevamente.");
+            return "formulario_medico";
         }
     }
 
@@ -105,16 +97,13 @@ public class MedicoController {
             if (medico != null) {
                 // Eliminar usuario asociado
                 userRepository.findByUsername(medico.getUsuario()).ifPresent(userRepository::delete);
-                System.out.println("🗑️ Usuario eliminado: " + medico.getUsuario());
             }
 
             // Eliminar médico
             medicoService.deleteMedico(id);
-            System.out.println("🗑️ Médico eliminado: ID " + id);
 
             return "redirect:/medicos?eliminado";
         } catch (Exception e) {
-            System.err.println("❌ Error al eliminar médico: " + e.getMessage());
             return "redirect:/medicos?error=eliminacion";
         }
     }
@@ -130,26 +119,68 @@ public class MedicoController {
     }
 
     @PostMapping("/medicos/editar/{id}")
-    public String editarMedico(@PathVariable("id") Long id, @ModelAttribute("medico") Medico medico) {
-        // Asegurar que los valores no sean null
-        if (medico.getTurnosCancelados() == null) {
-            medico.setTurnosCancelados(0);
+    public String editarMedico(@PathVariable("id") Long id, @ModelAttribute("medico") Medico medico, Model model) {
+        // Obtener el médico original una sola vez
+        Medico medicoOriginal = medicoService.getMedicoById(id);
+        if (medicoOriginal == null) {
+            return "redirect:/medicos?error=medico_no_encontrado";
         }
-        if (medico.getTurnosSemanales() == null) {
-            medico.setTurnosSemanales(0);
+        
+        // Validar si ya existe otro médico con el mismo DNI
+        if (medicoService.existeMedicoPorDniExcluyendoId(medico.getDni(), id)) {
+            model.addAttribute("medico", medico);
+            model.addAttribute("error", "Ya existe otro médico registrado con el DNI: " + medico.getDni());
+            return "formulario_medico";
         }
 
-        // FORZAR que siempre sea MEDICO (seguridad adicional)
-        medico.setRol("MEDICO");
+        // Validar si ya existe otro médico con el mismo usuario
+        if (medicoService.existeMedicoPorUsuarioExcluyendoId(medico.getUsuario(), id)) {
+            model.addAttribute("medico", medico);
+            model.addAttribute("error", "Ya existe otro médico registrado con el usuario: " + medico.getUsuario());
+            return "formulario_medico";
+        }
+
+        // Validar si el usuario cambió y ya existe en el sistema (pero no es del médico actual)
+        if (!medicoOriginal.getUsuario().equals(medico.getUsuario())) {
+            if (userRepository.findByUsername(medico.getUsuario()).isPresent()) {
+                model.addAttribute("medico", medico);
+                model.addAttribute("error", "El nombre de usuario '" + medico.getUsuario() + "' ya está en uso en el sistema");
+                return "formulario_medico";
+            }
+        }
 
         try {
-            // Actualizar el médico
+            // Si la contraseña está vacía, mantener la original
+            if (medico.getContraseña() == null || medico.getContraseña().trim().isEmpty()) {
+                medico.setContraseña(medicoOriginal.getContraseña());
+            }
+            
+            // Actualizar médico
             medicoService.updateMedico(id, medico);
-            return "redirect:/medicos?exito";
+            
+            // Actualizar usuario en tabla usuarios si cambió el usuario o contraseña
+            userRepository.findByUsername(medicoOriginal.getUsuario()).ifPresent(usuario -> {
+                if (!medicoOriginal.getUsuario().equals(medico.getUsuario())) {
+                    // Si cambió el usuario, eliminar el anterior y crear uno nuevo
+                    userRepository.delete(usuario);
+                    UserModel nuevoUsuario = new UserModel();
+                    nuevoUsuario.setUsername(medico.getUsuario());
+                    nuevoUsuario.setPassword(passwordEncoder.encode(medico.getContraseña()));
+                    nuevoUsuario.setRol("MEDICO");
+                    userRepository.save(nuevoUsuario);
+                } else if (medico.getContraseña() != null && !medico.getContraseña().trim().isEmpty() 
+                          && !passwordEncoder.matches(medico.getContraseña(), usuario.getPassword())) {
+                    // Si cambió la contraseña, actualizarla (solo si no está vacía y es diferente)
+                    usuario.setPassword(passwordEncoder.encode(medico.getContraseña()));
+                    userRepository.save(usuario);
+                }
+            });
+            
+            return "redirect:/medicos?exito=medico_actualizado";
         } catch (Exception e) {
-            System.err.println("Error al editar médico: " + e.getMessage());
-            e.printStackTrace();
-            return "redirect:/medicos/editar/" + id + "?error=guardado";
+            model.addAttribute("medico", medico);
+            model.addAttribute("error", "Error al actualizar el médico. Por favor, intente nuevamente.");
+            return "formulario_medico";
         }
     }
 }
