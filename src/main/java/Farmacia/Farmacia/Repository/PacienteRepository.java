@@ -10,5 +10,6 @@ import Farmacia.Farmacia.Model.Paciente;
 @Repository
 public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     Optional<Paciente> findByDni(String dni);
+
     boolean existsByDni(String dni);
 }
