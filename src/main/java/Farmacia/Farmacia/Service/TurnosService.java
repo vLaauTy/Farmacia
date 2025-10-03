@@ -34,4 +34,9 @@ public class TurnosService {
             return false;
         }
     }
+
+    // Método para verificar si existe un turno en una fecha y hora específica
+    public boolean existeTurnoEnFechaYHora(Long medicoId, Integer dia, Integer mes, Integer anio, String hora) {
+        return turnosRepository.existsByMedicoAndFechaAndHora(medicoId, dia, mes, anio, hora);
+    }
 }

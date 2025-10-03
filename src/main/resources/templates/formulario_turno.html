@@ -32,7 +32,7 @@
                 <legend>📅 Información del Turno</legend>
 
                 <label for="medico">👨‍⚕️ Médico:</label>
-                <select name="medico" id="medico" required onchange="cargarHorarios(this.value)">
+                <select name="medico" id="medico" required onchange="cargarHorarios()">
                     <option value="">Seleccione un médico</option>
                     <option th:each="medico : ${medicos}" th:value="${medico.id}"
                         th:text="${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad + ' - ' + medico.horario}"
@@ -51,10 +51,10 @@
                 </select>
 
                 <label for="dia">📅 Día:</label>
-                <input type="number" th:field="*{dia}" id="dia" placeholder="Día" min="1" max="31" required>
+                <input type="number" th:field="*{dia}" id="dia" placeholder="Día" min="1" max="31" required onchange="cargarHorarios()">
 
                 <label for="mes">📅 Mes:</label>
-                <select th:field="*{mes}" id="mes" required>
+                <select th:field="*{mes}" id="mes" required onchange="cargarHorarios()">
                     <option value="">Seleccione mes</option>
                     <option value="1">Enero</option>
                     <option value="2">Febrero</option>
@@ -72,7 +72,7 @@
 
                 <label for="anio">📅 Año:</label>
                 <input type="number" th:field="*{anio}" id="anio" placeholder="2025" min="2024" max="2030"
-                    th:value="${turno.anio != null} ? ${turno.anio} : 2025" required>
+                    th:value="${turno.anio != null} ? ${turno.anio} : 2025" required onchange="cargarHorarios()">
 
                 <label for="hora">🕒 Hora disponible:</label>
                 <select name="hora" id="hora" required>
@@ -93,8 +93,12 @@
     </div>
 
     <script>
-        // Función para cargar horarios según el médico seleccionado
-        function cargarHorarios(medicoId) {
+        // Función para cargar horarios disponibles según el médico y fecha seleccionados
+        function cargarHorarios() {
+            const medicoId = document.getElementById('medico').value;
+            const dia = document.getElementById('dia').value;
+            const mes = document.getElementById('mes').value;
+            const anio = document.getElementById('anio').value;
             const selectHora = document.getElementById('hora');
 
             // Limpiar opciones actuales
@@ -105,11 +109,38 @@
                 return;
             }
 
-            // Hacer petición AJAX para obtener horarios
-            fetch(`/turnos/horarios/${medicoId}`)
+            // Construir URL con parámetros de fecha
+            let url = `/turnos/horarios/${medicoId}`;
+            const params = new URLSearchParams();
+            
+            if (dia && mes && anio) {
+                params.append('dia', dia);
+                params.append('mes', mes);
+                params.append('anio', anio);
+            }
+
+            // Agregar ID del turno si estamos editando
+            const turnoId = new URLSearchParams(window.location.search).get('id') || 
+                           window.location.pathname.match(/\/turnos\/editar\/(\d+)/)?.[1];
+            if (turnoId) {
+                params.append('turnoId', turnoId);
+            }
+
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+
+            // Hacer petición AJAX para obtener horarios disponibles
+            fetch(url)
                 .then(response => response.json())
                 .then(horarios => {
                     selectHora.innerHTML = '<option value="">Seleccione una hora</option>';
+                    
+                    if (horarios.length === 0) {
+                        selectHora.innerHTML = '<option value="">No hay horarios disponibles para esta fecha</option>';
+                        return;
+                    }
+                    
                     horarios.forEach(hora => {
                         const option = document.createElement('option');
                         option.value = hora;
@@ -128,33 +159,28 @@
             const medicoSelect = document.getElementById('medico');
             const horaSelect = document.getElementById('hora');
             const anioInput = document.getElementById('anio');
-            const horaActual = horaSelect.getAttribute('data-hora-actual');
 
             // Establecer año por defecto a 2025 si está vacío (nuevo turno)
             if (!anioInput.value || anioInput.value === '') {
                 anioInput.value = 2025;
             }
 
+            // Guardar la hora actual si estamos editando un turno
+            const horaActual = horaSelect.querySelector('option[selected]')?.value;
+
             if (medicoSelect.value) {
-                // Si estamos editando un turno, cargar horarios y seleccionar la hora actual
-                fetch(`/turnos/horarios/${medicoSelect.value}`)
-                    .then(response => response.json())
-                    .then(horarios => {
-                        horaSelect.innerHTML = '<option value="">Seleccione una hora</option>';
-                        horarios.forEach(hora => {
-                            const option = document.createElement('option');
-                            option.value = hora;
-                            option.textContent = hora;
-                            if (horaActual && hora === horaActual) {
-                                option.selected = true;
-                            }
-                            horaSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error al cargar horarios:', error);
-                        horaSelect.innerHTML = '<option value="">Error al cargar horarios</option>';
-                    });
+                // Cargar horarios disponibles
+                cargarHorarios();
+                
+                // Si hay una hora preseleccionada (edición), seleccionarla después de cargar
+                if (horaActual) {
+                    setTimeout(() => {
+                        const option = horaSelect.querySelector(`option[value="${horaActual}"]`);
+                        if (option) {
+                            option.selected = true;
+                        }
+                    }, 500);
+                }
             }
         });
     </script>

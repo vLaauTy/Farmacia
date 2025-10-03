@@ -154,17 +154,53 @@ public class TurnosController {
         return "redirect:/turnos";
     }
     
-    // Endpoint AJAX para obtener horarios de un médico
+    // Endpoint AJAX para obtener horarios disponibles de un médico en una fecha específica
     @GetMapping("/turnos/horarios/{medicoId}")
     @ResponseBody
-    public ResponseEntity<List<String>> obtenerHorariosMedico(@PathVariable Long medicoId) {
+    public ResponseEntity<List<String>> obtenerHorariosDisponibles(
+            @PathVariable Long medicoId,
+            @RequestParam(required = false) Integer dia,
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer anio,
+            @RequestParam(required = false) Long turnoId) {
         try {
             Medico medico = medicoService.getMedicoById(medicoId);
-            if (medico != null) {
-                List<String> horarios = generarHorariosPorTipo(medico.getHorario());
-                return ResponseEntity.ok(horarios);
+            if (medico == null) {
+                return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.notFound().build();
+
+            // Generar todos los horarios posibles para el médico
+            List<String> todosLosHorarios = generarHorariosPorTipo(medico.getHorario());
+            
+            // Si no se proporciona fecha, devolver todos los horarios
+            if (dia == null || mes == null || anio == null) {
+                return ResponseEntity.ok(todosLosHorarios);
+            }
+
+            // Filtrar horarios ocupados para la fecha específica
+            List<String> horariosDisponibles = todosLosHorarios.stream()
+                .filter(hora -> {
+                    // Si estamos editando un turno, permitir la hora actual del turno
+                    if (turnoId != null) {
+                        var turnoActual = turnosService.obtenerPorId(turnoId);
+                        if (turnoActual.isPresent()) {
+                            Turnos turno = turnoActual.get();
+                            if (turno.getMedico().getId().equals(medicoId) && 
+                                turno.getDia().equals(dia) && 
+                                turno.getMes().equals(mes) && 
+                                turno.getAnio().equals(anio) && 
+                                turno.getHora().equals(hora)) {
+                                return true; // Permitir la hora del turno actual en edición
+                            }
+                        }
+                    }
+                    
+                    // Verificar si la hora está ocupada
+                    return !turnosService.existeTurnoEnFechaYHora(medicoId, dia, mes, anio, hora);
+                })
+                .toList();
+
+            return ResponseEntity.ok(horariosDisponibles);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
