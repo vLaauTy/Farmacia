@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turnos - Sistema Farmacia</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-logo">Sistema Farmacia - TURNOS</div>
+            <div class="navbar-links">
+                <a href="/" class="btn-back">← Volver al Inicio</a>
+                <a href="/logout">Cerrar Sesión</a>
+            </div>
+        </nav>
+
+        <h2>📅 Lista de Turnos</h2>
+
+        <div style="margin-bottom: 20px; text-align: center;" sec:authorize="hasRole('ADMIN')">
+            <a href="/turnos/nuevo" class="btn btn-primary">➕ Nuevo Turno</a>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Médico</th>
+                        <th>Paciente</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th sec:authorize="hasRole('ADMIN')">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="turno : ${turnos}">
+                        <td th:text="${turno.id}"></td>
+                        <td th:text="${turno.medico?.nombre + ' ' + turno.medico?.apellido}"></td>
+                        <td th:text="${turno.paciente?.nombre + ' ' + turno.paciente?.apellido}"></td>
+                        <td th:text="${turno.dia + '/' + turno.mes + '/' + turno.anio}"></td>
+                        <td th:text="${turno.hora}"></td>
+                        <td sec:authorize="hasRole('ADMIN')">
+                            <a th:href="@{'/turnos/editar/' + ${turno.id}}" class="btn btn-edit">✏️ Editar</a>
+                            <a th:href="@{'/turnos/eliminar/' + ${turno.id}}" class="btn btn-delete"
+                                onclick="return confirm('¿Estás seguro de eliminar este turno?')">🗑️ Eliminar</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.isEmpty(turnos)}" class="empty-message">
+                <p>📅 No hay turnos registrados</p>
+                <a href="/turnos/nuevo" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">Crear primer turno</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Estilo para botón Volver */
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</body>
+
+</html>

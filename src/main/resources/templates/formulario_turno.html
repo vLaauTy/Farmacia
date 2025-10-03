@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turno - Sistema Farmacia</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-logo">Sistema Farmacia - TURNO</div>
+            <div class="navbar-links">
+                <a href="/turnos" class="btn-back">← Volver</a>
+                <a href="/logout">Cerrar Sesión</a>
+            </div>
+        </nav>
+
+        <h2 th:text="${turno.id != null} ? '✏️ Editar Turno' : '📅 Nuevo Turno'"></h2>
+
+        <div th:if="${error}" class="error-message">
+            <p th:text="${error}"></p>
+        </div>
+
+        <!-- Formulario único -->
+        <form th:action="${turno.id != null} ? @{'/turnos/editar/' + ${turno.id}} : @{/turnos/guardar}"
+            th:object="${turno}" method="post">
+
+            <fieldset>
+                <legend>📅 Información del Turno</legend>
+
+                <label for="medico">👨‍⚕️ Médico:</label>
+                <select name="medico" id="medico" required onchange="cargarHorarios(this.value)">
+                    <option value="">Seleccione un médico</option>
+                    <option th:each="medico : ${medicos}" th:value="${medico.id}"
+                        th:text="${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad + ' - ' + medico.horario}"
+                        th:selected="${turno.medico != null and turno.medico.id == medico.id}"
+                        th:data-horario="${medico.horario}">
+                    </option>
+                </select>
+
+                <label for="paciente">👤 Paciente:</label>
+                <select name="paciente" id="paciente" required>
+                    <option value="">Seleccione un paciente</option>
+                    <option th:each="paciente : ${pacientes}" th:value="${paciente.id}"
+                        th:text="${paciente.nombre + ' ' + paciente.apellido + ' - DNI: ' + paciente.dni}"
+                        th:selected="${turno.paciente != null and turno.paciente.id == paciente.id}">
+                    </option>
+                </select>
+
+                <label for="dia">📅 Día:</label>
+                <input type="number" th:field="*{dia}" id="dia" placeholder="Día" min="1" max="31" required>
+
+                <label for="mes">📅 Mes:</label>
+                <select th:field="*{mes}" id="mes" required>
+                    <option value="">Seleccione mes</option>
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+
+                <label for="anio">📅 Año:</label>
+                <input type="number" th:field="*{anio}" id="anio" placeholder="2025" min="2024" max="2030" 
+                       th:value="${turno.anio != null} ? ${turno.anio} : 2025" required>
+
+                <label for="hora">🕒 Hora disponible:</label>
+                <select name="hora" id="hora" required>
+                    <option value="">Primero seleccione un médico</option>
+                    <option th:each="hora : ${horariosDisponibles}" th:value="${hora}" th:text="${hora}"
+                        th:selected="${turno.hora != null and turno.hora == hora}">
+                    </option>
+                </select>
+
+            </fieldset>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="submit" class="btn btn-primary"
+                    th:text="${turno.id != null} ? '💾 Guardar Cambios' : '💾 Crear Turno'"></button>
+                <a href="/turnos" class="btn btn-secondary">❌ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Función para cargar horarios según el médico seleccionado
+        function cargarHorarios(medicoId) {
+            const selectHora = document.getElementById('hora');
+
+            // Limpiar opciones actuales
+            selectHora.innerHTML = '<option value="">Cargando horarios...</option>';
+
+            if (!medicoId) {
+                selectHora.innerHTML = '<option value="">Primero seleccione un médico</option>';
+                return;
+            }
+
+            // Hacer petición AJAX para obtener horarios
+            fetch(`/turnos/horarios/${medicoId}`)
+                .then(response => response.json())
+                .then(horarios => {
+                    selectHora.innerHTML = '<option value="">Seleccione una hora</option>';
+                    horarios.forEach(hora => {
+                        const option = document.createElement('option');
+                        option.value = hora;
+                        option.textContent = hora;
+                        selectHora.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar horarios:', error);
+                    selectHora.innerHTML = '<option value="">Error al cargar horarios</option>';
+                });
+        }
+
+        // Cargar horarios al cargar la página si hay un médico seleccionado
+        document.addEventListener('DOMContentLoaded', function () {
+            const medicoSelect = document.getElementById('medico');
+            const horaSelect = document.getElementById('hora');
+            const anioInput = document.getElementById('anio');
+            const horaActual = horaSelect.getAttribute('data-hora-actual');
+
+            // Establecer año por defecto a 2025 si está vacío (nuevo turno)
+            if (!anioInput.value || anioInput.value === '') {
+                anioInput.value = 2025;
+            }
+
+            if (medicoSelect.value) {
+                // Si estamos editando un turno, cargar horarios y seleccionar la hora actual
+                fetch(`/turnos/horarios/${medicoSelect.value}`)
+                    .then(response => response.json())
+                    .then(horarios => {
+                        horaSelect.innerHTML = '<option value="">Seleccione una hora</option>';
+                        horarios.forEach(hora => {
+                            const option = document.createElement('option');
+                            option.value = hora;
+                            option.textContent = hora;
+                            if (horaActual && hora === horaActual) {
+                                option.selected = true;
+                            }
+                            horaSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar horarios:', error);
+                        horaSelect.innerHTML = '<option value="">Error al cargar horarios</option>';
+                    });
+            }
+        });
+    </script>
+
+    <style>
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            color: #721c24;
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
+        #hora:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .loading-message {
+            color: #007bff;
+            font-style: italic;
+        }
+    </style>
+
+
+</body>
+
+</html>

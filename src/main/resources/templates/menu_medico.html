@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Médico - Sistema Farmacia</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-logo">SaludSync - MÉDICO</div>
+        <div class="navbar-links">
+            <span th:text="'Dr/Dra. ' + ${nombreCompleto}">Dr. Nombre</span>
+            <a href="/logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <div>
+
+            <!-- Saludo principal -->
+            <div>
+                <h1 th:text="'¡Hola, ' + ${nombreCompleto} + '!'">¡Hola, Doctor!</h1>
+                <p>Bienvenido al Sistema de Gestión Farmacia</p>
+            </div>
+
+            <!-- Información del usuario -->
+            <div>
+                <h3>Información de su sesión</h3>
+                <div>
+
+                    <div>
+                        <h4>👤 Usuario</h4>
+                        <p th:text="${username}">usuario</p>
+                    </div>
+
+                    <div>
+                        <h4>🏥 Rol</h4>
+                        <p>Médico</p>
+                    </div>
+
+                    <div>
+                        <h4>🕐 Último acceso</h4>
+                        <p id="fechaActual">Hoy</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Mensaje informativo -->
+            <div>
+                <h3>👨‍⚕️ Gestión de Pacientes</h3>
+                <p>Administrar pacientes del sistema</p>
+                <a href="/pacientes" class="btn btn-editar">Acceder</a>
+            </div>
+
+            <!-- Botón de logout -->
+            <div>
+                <a href="/logout" class="btn btn-eliminar">🚪 Cerrar Sesión</a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Mostrar fecha actual
+        document.addEventListener('DOMContentLoaded', function () {
+            const fecha = new Date();
+            const opciones = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('fechaActual').textContent = fecha.toLocaleDateString('es-ES', opciones);
+        });
+    </script>
+
+</body>
+
+</html>

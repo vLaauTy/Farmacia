@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Paciente - SaludSync</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-logo">Sistema Farmacia - PACIENTE</div>
+            <div class="navbar-links">
+                <a href="/pacientes" class="btn-back">← Volver</a>
+                <a href="/logout">Cerrar Sesión</a>
+            </div>
+        </nav>
+        <h2
+            th:text="${esMedico} ? '🩺 Consulta de Paciente' : (${paciente.id != null} ? '✏️ Editar Paciente' : '🩺 Registrar Nuevo Paciente')">
+        </h2>
+
+        <!-- Mensaje informativo para médicos -->
+        <div th:if="${esMedico}" class="medico-info">
+            ℹ️ <strong>Modo Médico:</strong> Los datos personales están protegidos. Solo puede modificar el historial
+            clínico.
+        </div>
+
+        <!-- Mensaje de error -->
+        <div th:if="${error}" class="error-message">
+            <strong>⚠️ Error:</strong> <span th:text="${error}"></span>
+        </div>
+
+        <!-- Mensaje de éxito -->
+        <div th:if="${param.exito}" class="success-message">
+            <strong>✅ Éxito:</strong>
+            <span th:if="${param.exito[0] == 'paciente_guardado'}">Paciente registrado correctamente.</span>
+            <span th:if="${param.exito[0] == 'paciente_actualizado'}">Paciente actualizado correctamente.</span>
+        </div>
+
+        <form th:action="${paciente.id != null} ? @{'/pacientes/editar/' + ${paciente.id}} : @{/pacientes/guardar}"
+            th:object="${paciente}" method="post">
+            <fieldset>
+                <legend>🩺 Información del Paciente</legend>
+
+                <div>
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" th:field="*{nombre}" id="nombre" placeholder="Ingrese nombre"
+                        th:readonly="${esMedico}" required>
+
+                    <label for="apellido">Apellido:</label>
+                    <input type="text" th:field="*{apellido}" id="apellido" placeholder="Ingrese apellido"
+                        th:readonly="${esMedico}" required>
+
+                    <label for="dni">DNI:</label>
+                    <input type="text" th:field="*{dni}" id="dni" placeholder="12345678" pattern="[0-9]{7,8}"
+                        title="DNI de 7 u 8 dígitos" th:readonly="${esMedico}"
+                        th:class="${error != null ? 'campo-error' : ''}" required>
+
+                    <label for="domicilio">Domicilio:</label>
+                    <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad"
+                        th:readonly="${esMedico}" required>
+
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
+                        pattern="[0-9\-\+\(\)\s]+" title="Formato: 11-1234-5678" th:readonly="${esMedico}" required>
+
+                    <label for="obraSocial">¿Tiene Obra Social?</label>
+                    <select th:field="*{obraSocial}" id="obraSocial" th:disabled="${esMedico}" required>
+                        <option value="">Seleccione</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+
+                    <!-- Campos de obra social que se mostrarán/ocultarán -->
+                    <div id="camposObraSocial">
+                        <label for="plan">Plan:</label>
+                        <input type="text" th:field="*{plan}" id="plan" placeholder="Plan de obra social"
+                            th:readonly="${esMedico}">
+
+                        <label for="afiliado">N° de Afiliado:</label>
+                        <input type="text" th:field="*{afiliado}" id="afiliado" placeholder="Número de afiliado"
+                            th:readonly="${esMedico}">
+
+                        <label for="numeroTarjeta">N° de Tarjeta:</label>
+                        <input type="text" th:field="*{numeroTarjeta}" id="numeroTarjeta" placeholder="Número de tarjeta"
+                            th:readonly="${esMedico}">
+                    </div>
+                </div>
+
+                <!-- Historial clínico solo para médicos -->
+                <div th:if="${esMedico}">
+                    <fieldset class="historial-fieldset">
+                        <legend class="historial-legend">🩺 Historial Clínico</legend>
+                        <label for="historialClinico">Historial Clínico:</label>
+                        <textarea th:field="*{historialClinico}" id="historialClinico" rows="6"
+                            placeholder="Observaciones médicas, antecedentes, diagnósticos, tratamientos, etc."></textarea>
+                    </fieldset>
+                </div>
+            </fieldset>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary"
+                    th:text="${esMedico} ? '💾 Actualizar Historial Clínico' : (${paciente.id != null} ? '💾 Guardar Cambios' : '💾 Registrar Paciente')"></button>
+                <a href="/pacientes" class="btn btn-secondary">❌ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Validación de DNI en tiempo real
+        document.getElementById('dni').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+        });
+
+        // Control de visibilidad de campos de obra social
+        function toggleCamposObraSocial() {
+            const tieneObraSocial = document.getElementById('obraSocial').value;
+            const camposObraSocial = document.getElementById('camposObraSocial');
+            const inputs = camposObraSocial.querySelectorAll('input');
+
+            if (tieneObraSocial === 'true') {
+                camposObraSocial.style.display = 'block';
+            } else {
+                camposObraSocial.style.display = 'none';
+                inputs.forEach(input => {
+                    input.value = '';
+                    input.removeAttribute('required');
+                });
+            }
+        }
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleCamposObraSocial();
+            document.getElementById('obraSocial').addEventListener('change', toggleCamposObraSocial);
+        });
+    </script>
+
+    <style>
+        /* Estilos para campos de solo lectura cuando es médico */
+        input[readonly],
+        select[disabled] {
+            background-color: #f8f9fa !important;
+            border: 2px solid #e9ecef !important;
+            color: #6c757d !important;
+            cursor: not-allowed !important;
+        }
+
+        /* Mensaje informativo para médicos */
+        .medico-info {
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+
+        /* Mensajes de error y éxito */
+        .error-message, .success-message {
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Historial clínico */
+        .historial-fieldset {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .historial-legend {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        #historialClinico {
+            width: 100%;
+            min-height: 120px;
+            border: 2px solid #28a745 !important;
+            background-color: #f8fff9 !important;
+        }
+
+        /* Destacar campo con error */
+        .campo-error {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff5f5 !important;
+        }
+
+        /* Campos de obra social */
+        #camposObraSocial {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Botones del formulario */
+        .form-buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        /* Estilo para botón Volver */
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</body>
+
+</html>

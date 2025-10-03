@@ -1,0 +1,37 @@
+package Farmacia.Farmacia.Service;
+
+import Farmacia.Farmacia.Model.Turnos;
+import Farmacia.Farmacia.Repository.TurnosRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Optional;
+
+@Service
+public class TurnosService {
+
+    @Autowired
+    TurnosRepository turnosRepository;
+
+    public ArrayList<Turnos> obtenerTurnos() {
+        return (ArrayList<Turnos>) turnosRepository.findAll();
+    }
+
+    public Turnos guardarTurno(Turnos turno) {
+        return turnosRepository.save(turno);
+    }
+
+    public Optional<Turnos> obtenerPorId(Long id) {
+        return turnosRepository.findById(id);
+    }
+
+    public boolean eliminarTurno(Long id) {
+        try {
+            turnosRepository.deleteById(id);
+            return true;
+        } catch (Exception err) {
+            return false;
+        }
+    }
+}

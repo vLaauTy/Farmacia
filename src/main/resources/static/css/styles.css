@@ -1,0 +1,543 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+    color: #333;
+}
+
+/* Menú superior */
+.navbar {
+    background-color: #1e90ff;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Fondo y contenedor de Login */
+.login-body {
+    background: linear-gradient(to right, #6dd5ed, #2193b0);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 30px;
+}
+
+.login-box {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.login-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #1e3558;
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.login-form input[type="submit"] {
+    background-color: #1e90ff;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.login-form input[type="submit"]:hover {
+    background-color: #0e70d1;
+}
+
+
+.navbar-logo {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.navbar-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.navbar-links a:hover {
+    opacity: 0.8;
+}
+
+/* Contenedor principal */
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* Títulos */
+h2 {
+    color: #1e3558;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Formularios */
+form {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    max-width: 600px;
+    margin: auto;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="date"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+input[type="submit"] {
+    background-color: #1e90ff;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+input[type="submit"]:hover {
+    background-color: #0e70d1;
+}
+
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    margin-top: 30px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+table th,
+table td {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+table th {
+    background-color: #f0f4f8;
+    color: #1e3558;
+    font-weight: bold;
+}
+
+/* Botones de acción */
+a.btn {
+    display: inline-block;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    text-decoration: none;
+    color: white;
+    margin-right: 6px;
+    transition: background-color 0.3s;
+}
+
+.btn-ver {
+    background-color: #17a2b8;
+}
+
+.btn-ver:hover {
+    background-color: #138496;
+}
+
+.btn-editar {
+    background-color: #28a745;
+}
+
+.btn-editar:hover {
+    background-color: #218838;
+}
+
+.btn-eliminar {
+    background-color: #dc3545;
+}
+
+.btn-eliminar:hover {
+    background-color: #c82333;
+}
+
+/* Columna de acciones */
+.acciones {
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Mensaje de alerta */
+.alert {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+    color: #6c757d;
+}
+
+/* Mensajes en formulario de login */
+.message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.message-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.message-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.message-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Icono para mensajes */
+.message::before {
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.message-error::before {
+    content: "❌ ";
+}
+
+.message-success::before {
+    content: "✅ ";
+}
+
+.message-info::before {
+    content: "ℹ️ ";
+}
+
+.message-warning::before {
+    content: "⚠️ ";
+}
+
+/* ===== ESTILOS PARA PANEL DE ADMINISTRADOR ===== */
+
+/* Contenedor principal del panel admin */
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    min-height: calc(100vh - 120px);
+}
+
+/* Header del panel admin */
+.admin-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.admin-header h2 {
+    color: #1e3558;
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.welcome-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    margin: 0 auto;
+    max-width: 600px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-message p {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.welcome-message p:first-child {
+    font-weight: 600;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+}
+
+/* Dashboard grid principal */
+.admin-dashboard {
+    display: grid;
+    gap: 40px;
+}
+
+/* Secciones del dashboard */
+.admin-section {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+    color: #1e3558;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    border-bottom: 3px solid #1e90ff;
+    padding-bottom: 10px;
+}
+
+/* Grid de cards principales */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+/* Cards individuales */
+.admin-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1e90ff, #00bcd4);
+}
+
+.admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Iconos de las cards */
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.card-content h4 {
+    color: #1e3558;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.card-content p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+.card-stats {
+    background: #f8f9ff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #1e3558;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* Acciones de las cards */
+.card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Botones mejorados */
+.btn-primary {
+    background: linear-gradient(135deg, #1e90ff, #00bcd4);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    display: inline-block;
+    opacity: 1;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0078d4, #00a8cc);
+    box-shadow: 0 4px 12px rgba(30, 144, 255, 0.2);
+}
+
+.btn-secondary {
+    background: #1e90ff;
+    color: white;
+    border: 2px solid #1e90ff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s ease, color 0.2s ease;
+    display: inline-block;
+    opacity: 1;
+}
+
+.btn-secondary:hover {
+    background: #0078d4;
+    color: white;
+}
+
+.btn-disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: not-allowed;
+    display: inline-block;
+}
+
+/* Colores específicos para cada card */
+.card-medicos .card-icon {
+    color: #28a745;
+}
+
+.card-pacientes .card-icon {
+    color: #17a2b8;
+}
+
+.card-turnos .card-icon {
+    color: #ffc107;
+}
+
+.card-calendario .card-icon {
+    color: #6f42c1;
+}
+
+
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 20px 15px;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .admin-header h2 {
+        font-size: 1.8rem;
+    }
+
+    .welcome-message {
+        padding: 15px 20px;
+    }
+}
