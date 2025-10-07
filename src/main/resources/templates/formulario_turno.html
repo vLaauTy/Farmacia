@@ -24,16 +24,20 @@
             <p th:text="${error}"></p>
         </div>
 
-        <form th:action="${turno.id != null} ? @{'/turnos/editar/' + ${turno.id}} : @{/turnos/formulario}" method="get"
-            id="filtroForm" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-
+        <!-- PASO 1: Formulario de filtros SIN JavaScript -->
+        <form th:action="${turno.id != null} ? @{'/turnos/editar/' + ${turno.id}} : @{/turnos/formulario}" 
+              method="get" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #007bff;">
+            
             <input type="hidden" name="turnoId" th:value="${turno.id}" th:if="${turno.id != null}">
-
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
+            
+            <h4 style="margin-top: 0; color: #007bff;">🔍 Paso 1: Seleccione médico y fecha</h4>
+            <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">Los horarios se actualizarán automáticamente al cambiar cualquier campo</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
+                
                 <div>
-                    <label for="filtro-medico">👨‍⚕️ Médico:</label>
-                    <select name="medicoId" id="filtro-medico" onchange="this.form.submit()">
+                    <label for="medico-filter">👨‍⚕️ Médico:</label>
+                    <select name="medicoId" id="medico-filter" onchange="this.form.submit()">
                         <option value="">Seleccione un médico</option>
                         <option th:each="medico : ${medicos}" th:value="${medico.id}"
                             th:text="${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad}"
@@ -43,14 +47,14 @@
                 </div>
 
                 <div>
-                    <label for="filtro-dia">📅 Día:</label>
-                    <input type="number" name="dia" id="filtro-dia" placeholder="Día" min="1" max="31"
+                    <label for="dia-filter">📅 Día:</label>
+                    <input type="number" name="dia" id="dia-filter" placeholder="Día" min="1" max="31"
                         th:value="${diaSeleccionado}" onchange="this.form.submit()">
                 </div>
 
                 <div>
-                    <label for="filtro-mes">📅 Mes:</label>
-                    <select name="mes" id="filtro-mes" onchange="this.form.submit()">
+                    <label for="mes-filter">📅 Mes:</label>
+                    <select name="mes" id="mes-filter" onchange="this.form.submit()">
                         <option value="">Mes</option>
                         <option value="1" th:selected="${mesSeleccionado == 1}">Enero</option>
                         <option value="2" th:selected="${mesSeleccionado == 2}">Febrero</option>
@@ -68,93 +72,41 @@
                 </div>
 
                 <div>
-                    <label for="filtro-anio">📅 Año:</label>
-                    <input type="number" name="anio" id="filtro-anio" placeholder="2025" min="2024" max="2030"
+                    <label for="anio-filter">📅 Año:</label>
+                    <input type="number" name="anio" id="anio-filter" placeholder="2025" min="2024" max="2030"
                         th:value="${anioSeleccionado != null ? anioSeleccionado : 2025}" onchange="this.form.submit()">
                 </div>
 
                 <div>
-                    <button type="submit" class="btn btn-secondary" style="width: 100%;">🔍 Filtrar Horarios</button>
+                    <button type="submit" class="btn btn-secondary">🔍 Buscar Horarios</button>
                 </div>
             </div>
         </form>
 
-        <!-- Formulario principal para guardar el turno -->
+        <!-- PASO 2: Formulario para completar el turno -->
         <form th:action="${turno.id != null} ? @{'/turnos/editar/' + ${turno.id}} : @{/turnos/guardar}"
             th:object="${turno}" method="post">
 
             <fieldset>
-                <legend>📅 Información del Turno</legend>
+                <legend>📅 Completar Turno</legend>
 
-                <label for="medico">👨‍⚕️ Médico:</label>
-                <select name="medico" id="medico" required>
-                    <option value="">Seleccione un médico</option>
-                    <option th:each="medico : ${medicos}" th:value="${medico.id}"
-                        th:text="${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad + ' - ' + medico.horario}"
-                        th:selected="${(turno.medico != null and turno.medico.id == medico.id) or (medicoSeleccionado != null and medicoSeleccionado == medico.id)}">
-                    </option>
-                </select>
+                <!-- Resumen de selección -->
+                <div th:if="${medicoSeleccionado != null}" style="background-color: #d1ecf1; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <h4 style="margin: 0; color: #0c5460;">📋 Selección actual:</h4>
+                    <p style="margin: 5px 0;">
+                        <strong>👨‍⚕️ Médico:</strong> 
+                        <span th:each="medico : ${medicos}" th:if="${medico.id == medicoSeleccionado}"
+                              th:text="${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad}"></span>
+                    </p>
+                    <p style="margin: 5px 0;" th:if="${diaSeleccionado != null and mesSeleccionado != null and anioSeleccionado != null}">
+                        <strong>📅 Fecha:</strong> 
+                        <span th:text="${diaSeleccionado + '/' + mesSeleccionado + '/' + anioSeleccionado}"></span>
+                    </p>
+                </div>
 
-                <label for="paciente">👤 Paciente:</label>
-                <select name="paciente" id="paciente" required>
-                    <option value="">Seleccione un paciente</option>
-                    <option th:each="paciente : ${pacientes}" th:value="${paciente.id}"
-                        th:text="${paciente.nombre + ' ' + paciente.apellido + ' - DNI: ' + paciente.dni}"
-                        th:selected="${turno.paciente != null and turno.paciente.id == paciente.id}">
-                    </option>
-                </select>
-
-                <label for="dia">📅 Día:</label>
-                <input type="number" th:field="*{dia}" id="dia" placeholder="Día" min="1" max="31" required
-                    th:value="${diaSeleccionado != null ? diaSeleccionado : turno.dia}">
-
-                <label for="mes">📅 Mes:</label>
-                <select th:field="*{mes}" id="mes" required>
-                    <option value="">Seleccione mes</option>
-                    <option value="1"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 1) or (turno.mes != null and turno.mes == 1)}">
-                        Enero</option>
-                    <option value="2"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 2) or (turno.mes != null and turno.mes == 2)}">
-                        Febrero</option>
-                    <option value="3"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 3) or (turno.mes != null and turno.mes == 3)}">
-                        Marzo</option>
-                    <option value="4"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 4) or (turno.mes != null and turno.mes == 4)}">
-                        Abril</option>
-                    <option value="5"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 5) or (turno.mes != null and turno.mes == 5)}">
-                        Mayo</option>
-                    <option value="6"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 6) or (turno.mes != null and turno.mes == 6)}">
-                        Junio</option>
-                    <option value="7"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 7) or (turno.mes != null and turno.mes == 7)}">
-                        Julio</option>
-                    <option value="8"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 8) or (turno.mes != null and turno.mes == 8)}">
-                        Agosto</option>
-                    <option value="9"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 9) or (turno.mes != null and turno.mes == 9)}">
-                        Septiembre</option>
-                    <option value="10"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 10) or (turno.mes != null and turno.mes == 10)}">
-                        Octubre</option>
-                    <option value="11"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 11) or (turno.mes != null and turno.mes == 11)}">
-                        Noviembre</option>
-                    <option value="12"
-                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 12) or (turno.mes != null and turno.mes == 12)}">
-                        Diciembre</option>
-                </select>
-
-                <label for="anio">📅 Año:</label>
-                <input type="number" th:field="*{anio}" id="anio" placeholder="2025" min="2024" max="2030" required
-                    th:value="${anioSeleccionado != null ? anioSeleccionado : (turno.anio != null ? turno.anio : 2025)}">
-
-                <!-- Mostrar horarios disponibles solo si se han cargado -->
-                <div th:if="${horariosDisponibles != null and !horariosDisponibles.empty}">
+                <!-- Paso 2: Horarios -->
+                <div th:if="${horariosDisponibles != null and !horariosDisponibles.empty}" style="margin-bottom: 15px; padding: 10px; background-color: #f0f8f0; border-radius: 5px;">
+                    <h4 style="color: #28a745; margin-top: 0;">⏰ Paso 2: Seleccione horario</h4>
                     <label for="hora">🕒 Hora disponible:</label>
                     <select name="hora" id="hora" required>
                         <option value="">Seleccione una hora</option>
@@ -162,21 +114,37 @@
                             th:selected="${turno.hora != null and turno.hora == hora}">
                         </option>
                     </select>
+                    <p style="color: #28a745; font-size: 12px; margin: 5px 0;">✅ <span th:text="${#lists.size(horariosDisponibles)}"></span> horarios disponibles</p>
                 </div>
 
-                <!-- Mensaje si no hay horarios disponibles -->
-                <div th:if="${horariosDisponibles != null and horariosDisponibles.empty}" class="no-horarios-message">
-                    <label>🕒 Horarios:</label>
-                    <p style="color: #dc3545; font-style: italic;">No hay horarios disponibles para la fecha
-                        seleccionada.</p>
+                <!-- Sin horarios -->
+                <div th:if="${horariosDisponibles != null and horariosDisponibles.empty}" style="margin-bottom: 15px; padding: 10px; background-color: #f8d7da; border-radius: 5px;">
+                    <p style="color: #dc3545; margin: 0;">❌ No hay horarios disponibles para esta fecha. Pruebe otra fecha.</p>
                 </div>
 
-                <!-- Mensaje si no se han seleccionado médico y fecha -->
-                <div th:if="${horariosDisponibles == null}" class="sin-filtros-message">
-                    <label>🕒 Horarios:</label>
-                    <p style="color: #6c757d; font-style: italic;">Use el filtro superior para seleccionar un médico y
-                        fecha, y ver los horarios disponibles.</p>
+                <!-- Mensaje inicial -->
+                <div th:if="${horariosDisponibles == null}" style="margin-bottom: 15px; padding: 10px; background-color: #d1ecf1; border-radius: 5px;">
+                    <p style="color: #6c757d; margin: 0;">ℹ️ Complete el Paso 1 para ver los horarios disponibles</p>
                 </div>
+
+                <!-- Paso 3: Paciente -->
+                <div th:if="${horariosDisponibles != null and !horariosDisponibles.empty}" style="padding: 10px; background-color: #f8f0ff; border-radius: 5px;">
+                    <h4 style="color: #6f42c1; margin-top: 0;">👤 Paso 3: Seleccione paciente</h4>
+                    <label for="paciente">Paciente:</label>
+                    <select name="paciente" id="paciente" required>
+                        <option value="">Seleccione un paciente</option>
+                        <option th:each="paciente : ${pacientes}" th:value="${paciente.id}"
+                            th:text="${paciente.nombre + ' ' + paciente.apellido + ' - DNI: ' + paciente.dni}"
+                            th:selected="${turno.paciente != null and turno.paciente.id == paciente.id}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Campos ocultos para el POST -->
+                <input type="hidden" name="medico" th:value="${medicoSeleccionado}">
+                <input type="hidden" th:field="*{dia}" th:value="${diaSeleccionado}">
+                <input type="hidden" th:field="*{mes}" th:value="${mesSeleccionado}">
+                <input type="hidden" th:field="*{anio}" th:value="${anioSeleccionado}">
 
             </fieldset>
 
@@ -186,6 +154,10 @@
                     th:disabled="${horariosDisponibles == null or horariosDisponibles.empty}">
                 </button>
                 <a href="/turnos" class="btn btn-secondary">❌ Cancelar</a>
+                
+                <p style="color: #6c757d; font-size: 12px; margin-top: 10px;" th:if="${horariosDisponibles == null or horariosDisponibles.empty}">
+                    💡 Complete los pasos anteriores para habilitar la creación del turno
+                </p>
             </div>
         </form>
     </div>
@@ -217,31 +189,10 @@
             text-decoration: none;
         }
 
-        .no-horarios-message,
-        .sin-filtros-message {
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 5px;
-        }
-
-        .no-horarios-message {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-        }
-
-        .sin-filtros-message {
-            background-color: #d1ecf1;
-            border: 1px solid #bee5eb;
-        }
-
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             background-color: #6c757d !important;
-        }
-
-        #filtroForm {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         fieldset {
@@ -257,13 +208,26 @@
             padding: 0 10px;
         }
 
-        /* Indicador visual de que el formulario requiere filtros */
-        .filter-required {
-            border-left: 4px solid #ffc107;
-            padding-left: 10px;
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
-
 
 </body>
 
