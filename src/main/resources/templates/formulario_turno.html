@@ -24,7 +24,62 @@
             <p th:text="${error}"></p>
         </div>
 
-        <!-- Formulario único -->
+        <form th:action="${turno.id != null} ? @{'/turnos/editar/' + ${turno.id}} : @{/turnos/formulario}" method="get"
+            id="filtroForm" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+
+            <input type="hidden" name="turnoId" th:value="${turno.id}" th:if="${turno.id != null}">
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
+                <div>
+                    <label for="filtro-medico">👨‍⚕️ Médico:</label>
+                    <select name="medicoId" id="filtro-medico" onchange="this.form.submit()">
+                        <option value="">Seleccione un médico</option>
+                        <option th:each="medico : ${medicos}" th:value="${medico.id}"
+                            th:text="${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad}"
+                            th:selected="${medicoSeleccionado != null and medicoSeleccionado == medico.id}">
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="filtro-dia">📅 Día:</label>
+                    <input type="number" name="dia" id="filtro-dia" placeholder="Día" min="1" max="31"
+                        th:value="${diaSeleccionado}" onchange="this.form.submit()">
+                </div>
+
+                <div>
+                    <label for="filtro-mes">📅 Mes:</label>
+                    <select name="mes" id="filtro-mes" onchange="this.form.submit()">
+                        <option value="">Mes</option>
+                        <option value="1" th:selected="${mesSeleccionado == 1}">Enero</option>
+                        <option value="2" th:selected="${mesSeleccionado == 2}">Febrero</option>
+                        <option value="3" th:selected="${mesSeleccionado == 3}">Marzo</option>
+                        <option value="4" th:selected="${mesSeleccionado == 4}">Abril</option>
+                        <option value="5" th:selected="${mesSeleccionado == 5}">Mayo</option>
+                        <option value="6" th:selected="${mesSeleccionado == 6}">Junio</option>
+                        <option value="7" th:selected="${mesSeleccionado == 7}">Julio</option>
+                        <option value="8" th:selected="${mesSeleccionado == 8}">Agosto</option>
+                        <option value="9" th:selected="${mesSeleccionado == 9}">Septiembre</option>
+                        <option value="10" th:selected="${mesSeleccionado == 10}">Octubre</option>
+                        <option value="11" th:selected="${mesSeleccionado == 11}">Noviembre</option>
+                        <option value="12" th:selected="${mesSeleccionado == 12}">Diciembre</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="filtro-anio">📅 Año:</label>
+                    <input type="number" name="anio" id="filtro-anio" placeholder="2025" min="2024" max="2030"
+                        th:value="${anioSeleccionado != null ? anioSeleccionado : 2025}" onchange="this.form.submit()">
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-secondary" style="width: 100%;">🔍 Filtrar Horarios</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Formulario principal para guardar el turno -->
         <form th:action="${turno.id != null} ? @{'/turnos/editar/' + ${turno.id}} : @{/turnos/guardar}"
             th:object="${turno}" method="post">
 
@@ -32,12 +87,11 @@
                 <legend>📅 Información del Turno</legend>
 
                 <label for="medico">👨‍⚕️ Médico:</label>
-                <select name="medico" id="medico" required onchange="cargarHorarios()">
+                <select name="medico" id="medico" required>
                     <option value="">Seleccione un médico</option>
                     <option th:each="medico : ${medicos}" th:value="${medico.id}"
                         th:text="${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad + ' - ' + medico.horario}"
-                        th:selected="${turno.medico != null and turno.medico.id == medico.id}"
-                        th:data-horario="${medico.horario}">
+                        th:selected="${(turno.medico != null and turno.medico.id == medico.id) or (medicoSeleccionado != null and medicoSeleccionado == medico.id)}">
                     </option>
                 </select>
 
@@ -51,139 +105,90 @@
                 </select>
 
                 <label for="dia">📅 Día:</label>
-                <input type="number" th:field="*{dia}" id="dia" placeholder="Día" min="1" max="31" required onchange="cargarHorarios()">
+                <input type="number" th:field="*{dia}" id="dia" placeholder="Día" min="1" max="31" required
+                    th:value="${diaSeleccionado != null ? diaSeleccionado : turno.dia}">
 
                 <label for="mes">📅 Mes:</label>
-                <select th:field="*{mes}" id="mes" required onchange="cargarHorarios()">
+                <select th:field="*{mes}" id="mes" required>
                     <option value="">Seleccione mes</option>
-                    <option value="1">Enero</option>
-                    <option value="2">Febrero</option>
-                    <option value="3">Marzo</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Mayo</option>
-                    <option value="6">Junio</option>
-                    <option value="7">Julio</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Septiembre</option>
-                    <option value="10">Octubre</option>
-                    <option value="11">Noviembre</option>
-                    <option value="12">Diciembre</option>
+                    <option value="1"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 1) or (turno.mes != null and turno.mes == 1)}">
+                        Enero</option>
+                    <option value="2"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 2) or (turno.mes != null and turno.mes == 2)}">
+                        Febrero</option>
+                    <option value="3"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 3) or (turno.mes != null and turno.mes == 3)}">
+                        Marzo</option>
+                    <option value="4"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 4) or (turno.mes != null and turno.mes == 4)}">
+                        Abril</option>
+                    <option value="5"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 5) or (turno.mes != null and turno.mes == 5)}">
+                        Mayo</option>
+                    <option value="6"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 6) or (turno.mes != null and turno.mes == 6)}">
+                        Junio</option>
+                    <option value="7"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 7) or (turno.mes != null and turno.mes == 7)}">
+                        Julio</option>
+                    <option value="8"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 8) or (turno.mes != null and turno.mes == 8)}">
+                        Agosto</option>
+                    <option value="9"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 9) or (turno.mes != null and turno.mes == 9)}">
+                        Septiembre</option>
+                    <option value="10"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 10) or (turno.mes != null and turno.mes == 10)}">
+                        Octubre</option>
+                    <option value="11"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 11) or (turno.mes != null and turno.mes == 11)}">
+                        Noviembre</option>
+                    <option value="12"
+                        th:selected="${(mesSeleccionado != null and mesSeleccionado == 12) or (turno.mes != null and turno.mes == 12)}">
+                        Diciembre</option>
                 </select>
 
                 <label for="anio">📅 Año:</label>
-                <input type="number" th:field="*{anio}" id="anio" placeholder="2025" min="2024" max="2030"
-                    th:value="${turno.anio != null} ? ${turno.anio} : 2025" required onchange="cargarHorarios()">
+                <input type="number" th:field="*{anio}" id="anio" placeholder="2025" min="2024" max="2030" required
+                    th:value="${anioSeleccionado != null ? anioSeleccionado : (turno.anio != null ? turno.anio : 2025)}">
 
-                <label for="hora">🕒 Hora disponible:</label>
-                <select name="hora" id="hora" required>
-                    <option value="">Primero seleccione un médico</option>
-                    <option th:each="hora : ${horariosDisponibles}" th:value="${hora}" th:text="${hora}"
-                        th:selected="${turno.hora != null and turno.hora == hora}">
-                    </option>
-                </select>
+                <!-- Mostrar horarios disponibles solo si se han cargado -->
+                <div th:if="${horariosDisponibles != null and !horariosDisponibles.empty}">
+                    <label for="hora">🕒 Hora disponible:</label>
+                    <select name="hora" id="hora" required>
+                        <option value="">Seleccione una hora</option>
+                        <option th:each="hora : ${horariosDisponibles}" th:value="${hora}" th:text="${hora}"
+                            th:selected="${turno.hora != null and turno.hora == hora}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Mensaje si no hay horarios disponibles -->
+                <div th:if="${horariosDisponibles != null and horariosDisponibles.empty}" class="no-horarios-message">
+                    <label>🕒 Horarios:</label>
+                    <p style="color: #dc3545; font-style: italic;">No hay horarios disponibles para la fecha
+                        seleccionada.</p>
+                </div>
+
+                <!-- Mensaje si no se han seleccionado médico y fecha -->
+                <div th:if="${horariosDisponibles == null}" class="sin-filtros-message">
+                    <label>🕒 Horarios:</label>
+                    <p style="color: #6c757d; font-style: italic;">Use el filtro superior para seleccionar un médico y
+                        fecha, y ver los horarios disponibles.</p>
+                </div>
 
             </fieldset>
 
             <div style="text-align: center; margin-top: 30px;">
                 <button type="submit" class="btn btn-primary"
-                    th:text="${turno.id != null} ? '💾 Guardar Cambios' : '💾 Crear Turno'"></button>
+                    th:text="${turno.id != null} ? '💾 Guardar Cambios' : '💾 Crear Turno'"
+                    th:disabled="${horariosDisponibles == null or horariosDisponibles.empty}">
+                </button>
                 <a href="/turnos" class="btn btn-secondary">❌ Cancelar</a>
             </div>
         </form>
     </div>
-
-    <script>
-        // Función para cargar horarios disponibles según el médico y fecha seleccionados
-        function cargarHorarios() {
-            const medicoId = document.getElementById('medico').value;
-            const dia = document.getElementById('dia').value;
-            const mes = document.getElementById('mes').value;
-            const anio = document.getElementById('anio').value;
-            const selectHora = document.getElementById('hora');
-
-            // Limpiar opciones actuales
-            selectHora.innerHTML = '<option value="">Cargando horarios...</option>';
-
-            if (!medicoId) {
-                selectHora.innerHTML = '<option value="">Primero seleccione un médico</option>';
-                return;
-            }
-
-            // Construir URL con parámetros de fecha
-            let url = `/turnos/horarios/${medicoId}`;
-            const params = new URLSearchParams();
-            
-            if (dia && mes && anio) {
-                params.append('dia', dia);
-                params.append('mes', mes);
-                params.append('anio', anio);
-            }
-
-            // Agregar ID del turno si estamos editando
-            const turnoId = new URLSearchParams(window.location.search).get('id') || 
-                           window.location.pathname.match(/\/turnos\/editar\/(\d+)/)?.[1];
-            if (turnoId) {
-                params.append('turnoId', turnoId);
-            }
-
-            if (params.toString()) {
-                url += '?' + params.toString();
-            }
-
-            // Hacer petición AJAX para obtener horarios disponibles
-            fetch(url)
-                .then(response => response.json())
-                .then(horarios => {
-                    selectHora.innerHTML = '<option value="">Seleccione una hora</option>';
-                    
-                    if (horarios.length === 0) {
-                        selectHora.innerHTML = '<option value="">No hay horarios disponibles para esta fecha</option>';
-                        return;
-                    }
-                    
-                    horarios.forEach(hora => {
-                        const option = document.createElement('option');
-                        option.value = hora;
-                        option.textContent = hora;
-                        selectHora.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error al cargar horarios:', error);
-                    selectHora.innerHTML = '<option value="">Error al cargar horarios</option>';
-                });
-        }
-
-        // Cargar horarios al cargar la página si hay un médico seleccionado
-        document.addEventListener('DOMContentLoaded', function () {
-            const medicoSelect = document.getElementById('medico');
-            const horaSelect = document.getElementById('hora');
-            const anioInput = document.getElementById('anio');
-
-            // Establecer año por defecto a 2025 si está vacío (nuevo turno)
-            if (!anioInput.value || anioInput.value === '') {
-                anioInput.value = 2025;
-            }
-
-            // Guardar la hora actual si estamos editando un turno
-            const horaActual = horaSelect.querySelector('option[selected]')?.value;
-
-            if (medicoSelect.value) {
-                // Cargar horarios disponibles
-                cargarHorarios();
-                
-                // Si hay una hora preseleccionada (edición), seleccionarla después de cargar
-                if (horaActual) {
-                    setTimeout(() => {
-                        const option = horaSelect.querySelector(`option[value="${horaActual}"]`);
-                        if (option) {
-                            option.selected = true;
-                        }
-                    }, 500);
-                }
-            }
-        });
-    </script>
 
     <style>
         .error-message {
@@ -212,14 +217,50 @@
             text-decoration: none;
         }
 
-        #hora:disabled {
-            background-color: #f8f9fa;
-            cursor: not-allowed;
+        .no-horarios-message,
+        .sin-filtros-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
         }
 
-        .loading-message {
-            color: #007bff;
-            font-style: italic;
+        .no-horarios-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .sin-filtros-message {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #6c757d !important;
+        }
+
+        #filtroForm {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        fieldset {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        legend {
+            font-weight: bold;
+            color: #495057;
+            padding: 0 10px;
+        }
+
+        /* Indicador visual de que el formulario requiere filtros */
+        .filter-required {
+            border-left: 4px solid #ffc107;
+            padding-left: 10px;
         }
     </style>
 

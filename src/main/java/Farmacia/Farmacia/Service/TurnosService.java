@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,6 +38,11 @@ public class TurnosService {
 
     // Método para verificar si existe un turno en una fecha y hora específica
     public boolean existeTurnoEnFechaYHora(Long medicoId, Integer dia, Integer mes, Integer anio, String hora) {
-        return turnosRepository.existsByMedicoAndFechaAndHora(medicoId, dia, mes, anio, hora);
+        return turnosRepository.existsByMedicoIdAndDiaAndMesAndAnioAndHora(medicoId, dia, mes, anio, hora);
+    }
+
+    // Buscar turnos por médico y fecha específica (usado en validaciones)
+    public List<Turnos> obtenerTurnosPorMedicoYFecha(Long medicoId, Integer dia, Integer mes, Integer anio) {
+        return turnosRepository.findByMedicoIdAndDiaAndMesAndAnio(medicoId, dia, mes, anio);
     }
 }

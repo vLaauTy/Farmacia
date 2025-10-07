@@ -93,15 +93,4 @@ public class Turnos {
         this.hora = hora;
     }
 
-    // ToString para depuración
-    @Override
-    public String toString() {
-        return "Turnos{" +
-                "id=" + id +
-                ", medico=" + (medico != null ? medico.getNombre() + " " + medico.getApellido() : "null") +
-                ", paciente=" + (paciente != null ? paciente.getNombre() + " " + paciente.getApellido() : "null") +
-                ", fecha=" + dia + "/" + mes + "/" + anio +
-                ", hora='" + hora + '\'' +
-                '}';
-    }
 }
