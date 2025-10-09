@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Turnos - Sistema Farmacia</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-logo">Sistema Farmacia - GESTIÓN TURNOS</div>
+            <div class="navbar-links">
+                <a href="/" class="btn-back">← Volver al Inicio</a>
+                <a href="/logout">Cerrar Sesión</a>
+            </div>
+        </nav>
+
+        <h1>📅 Gestión de Turnos</h1>
+
+        <div class="menu-grid">
+            <div class="menu-card">
+                <div class="menu-icon">📋</div>
+                <h3>Ver Turnos</h3>
+                <p>Lista todos los turnos programados</p>
+                <a href="/turnos" class="btn btn-primary">Ver Lista</a>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-icon">➕</div>
+                <h3>Nuevo Turno</h3>
+                <p>Crear un nuevo turno médico</p>
+                <a href="/turnos/nuevo" class="btn btn-primary">Crear Turno</a>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-icon">📅</div>
+                <h3>Calendario Semanal</h3>
+                <p>Vista de calendario con todos los turnos</p>
+                <a href="/calendario" class="btn btn-primary">Ver Calendario</a>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-icon">�</div>
+                <h3>Estadísticas</h3>
+                <p>Ver estadísticas de turnos</p>
+                <a href="#" class="btn btn-secondary">Próximamente</a>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-icon">🔍</div>
+                <h3>Buscar</h3>
+                <p>Buscar turnos por criterio</p>
+                <a href="#" class="btn btn-secondary">Próximamente</a>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="/" class="btn btn-secondary">🏠 Volver al Inicio</a>
+        </div>
+    </div>
+
+    <style>
+        /* Estilo para botón Volver */
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
+        a {
+            background: blue;
+            color: black;
+        }
+    </style>
+</body>
+
+</html>

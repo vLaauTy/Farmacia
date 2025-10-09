@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pacientes - SaludSync</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="/" class="btn-back">← Volver al Inicio</a>
+            <h1>🏥 Sistema Farmacia</h1>
+        </div>
+        <ul>
+            <li><a href="/medicos">👨‍⚕️ Médicos</a></li>
+            <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
+            <li><a href="/turnos">📅 Turnos</a></li>
+            <li><a href="/usuarios">👥 Usuarios</a></li>
+            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2>👨‍⚕️ Gestión de Pacientes</h2>
+
+
+        <div th:if="${param.error}" class="alert alert-danger">
+            ❌ Error en la operación. Inténtelo nuevamente.
+        </div>
+        <div th:if="${pacientes != null and #lists.size(pacientes) > 0}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>DNI</th>
+                        <th>Teléfono</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="paciente : ${pacientes}">
+                        <td th:text="${paciente.id}">1</td>
+                        <td th:text="${paciente.nombre + ' ' + paciente.apellido}">Juan Pérez</td>
+                        <td th:text="${paciente.dni}">12345678</td>
+                        <td th:text="${paciente.telefono}">11-1234-5678</td>
+                        <td>
+                            <a th:href="@{/pacientes/editar/{id}(id=${paciente.id})}" class="btn btn-warning">✏️
+                                Editar</a>
+                            <form th:action="@{/pacientes/eliminar/{id}(id=${paciente.id})}" method="post"
+                                style="display:inline;">
+                                <button type="submit" class="btn btn-eliminar"
+                                    onclick="return confirm('¿Está seguro de eliminar este paciente?')">🗑️
+                                    Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${pacientes == null or #lists.size(pacientes) == 0}" class="alert">
+            <h3>📋 No hay pacientes registrados</h3>
+            <p>Haga clic en "Nuevo Paciente" para agregar el primer paciente al sistema.</p>
+        </div>
+    </div>
+
+    <style>
+        /* Estructura de navegación mejorada */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .navbar ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 20px;
+        }
+
+        /* Estilo para botón Volver */
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</body>
+
+</html>

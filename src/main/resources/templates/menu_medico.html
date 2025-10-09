@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Médico - Sistema Farmacia</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-logo">SaludSync - MÉDICO</div>
+        <div class="navbar-links">
+            <span th:text="'Dr/Dra. ' + ${nombreCompleto}">Dr. Nombre</span>
+            <a href="/logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <div>
+
+            <!-- Saludo principal -->
+            <div>
+                <h1 th:text="'¡Hola, ' + ${nombreCompleto} + '!'">¡Hola, Doctor!</h1>
+                <p>Bienvenido al Sistema de Gestión de turnos</p>
+            </div>
+
+            <!-- Información del usuario -->
+            <div>
+                <h3>Información de su sesión</h3>
+                <div>
+
+                    <div>
+                        <h4>👤 Usuario</h4>
+                        <p th:text="${username}">usuario</p>
+                    </div>
+
+                    <div>
+                        <h4>🏥 Rol</h4>
+                        <p>Médico</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Gestión de Pacientes -->
+            <div style="margin-bottom: 30px;">
+                <h3>👨‍⚕️ Gestión de Pacientes</h3>
+                <p>Administrar pacientes del sistema</p>
+                <a href="/pacientes" class="btn btn-editar">Ver Pacientes</a>
+            </div>
+
+            <!-- Mis Turnos -->
+            <div style="margin-bottom: 30px;">
+                <h3>📅 Mis Turnos Asignados</h3>
+                <p>Ver y gestionar los turnos programados para usted</p>
+                <a href="/mis-turnos" class="btn btn-primary">Ver Mis Turnos</a>
+            </div>
+
+            <!-- Botón de logout -->
+            <div>
+                <a href="/logout" class="btn btn-eliminar">🚪 Cerrar Sesión</a>
+            </div>
+
+        </div>
+    </div>
+
+
+
+</body>
+
+</html>

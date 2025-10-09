@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador - SaludSync</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-logo">SaludSync - ADMINISTRADOR</div>
+        <div class="navbar-links">
+            <span th:text="'Bienvenido, ' + ${username}">Bienvenido, Admin</span>
+            <a href="/logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="admin-container">
+        <div class="admin-header">
+            <h2>Panel de Administración</h2>
+            <div class="welcome-message">
+                <p>¡Bienvenido a SaludSync!</p>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="admin-dashboard">
+
+            <!-- Sección de Gestión -->
+            <section class="admin-section">
+                <h3 class="section-title">📋 Gestión del Sistema</h3>
+                <div class="cards-grid">
+
+                    <!-- Card Gestión de Médicos -->
+                    <div class="admin-card card-medicos">
+                        <div class="card-icon">👨‍⚕️</div>
+                        <div class="card-content">
+                            <h4>Gestión de Médicos</h4>
+                            <p>Administrar médicos, especialidades y horarios de atención</p>
+                            <div class="card-stats">
+                                <span>Médicos registrados</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <a href="/medicos/gestion" class="btn btn-primary">Administrar</a>
+                            <a href="/medicos/nuevo" class="btn btn-secondary">Nuevo Médico</a>
+                        </div>
+                    </div>
+
+                    <!-- Card Gestión de Pacientes -->
+                    <div class="admin-card card-pacientes">
+                        <div class="card-icon">👥</div>
+                        <div class="card-content">
+                            <h4>Gestión de Pacientes</h4>
+                            <p>Administrar pacientes, historiales clínicos y datos personales</p>
+                            <div class="card-stats">
+                                <span>Pacientes registrados</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <a href="/pacientes/gestion" class="btn btn-primary">Administrar</a>
+                            <a href="/pacientes/nuevo" class="btn btn-secondary">Nuevo Paciente</a>
+                        </div>
+                    </div>
+
+                    <!-- Card Gestión de Turnos -->
+                    <div class="admin-card card-turnos">
+                        <div class="card-icon">📅</div>
+                        <div class="card-content">
+                            <h4>Gestión de Turnos</h4>
+                            <p>Administrar citas médicas, programar turnos y gestionar agenda</p>
+                            <div class="card-stats">
+                                <span>Turnos programados</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <a href="/turnos/gestion" class="btn btn-primary">Administrar</a>
+                            <a href="/turnos/nuevo" class="btn btn-secondary">Nuevo Turno</a>
+                        </div>
+                    </div>
+
+                    <!-- Card Calendario de Turnos -->
+                    <div class="admin-card card-calendario">
+                        <div class="card-icon">🗓️</div>
+                        <div class="card-content">
+                            <h4>Calendario Semanal</h4>
+                            <p>Vista completa de todos los turnos programados en formato calendario</p>
+                            <div class="card-stats">
+                                <span>Vista por días y horarios</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <a href="/calendario" class="btn btn-primary">Ver Calendario</a>
+                            <a href="/turnos" class="btn btn-secondary">Lista de Turnos</a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+        // Inicializar efectos cuando carga la página
+        document.addEventListener('DOMContentLoaded', function () {
+            // Efecto hover suave solo para las cards (sin afectar el texto)
+            const cards = document.querySelectorAll('.admin-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-3px)';
+                });
+
+                card.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

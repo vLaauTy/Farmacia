@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Turnos - SaludSync</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-logo">SaludSync - MIS TURNOS</div>
+        <div class="navbar-links">
+            <span th:text="'Dr/Dra. ' + ${medico.nombre + ' ' + medico.apellido}">Dr. Nombre</span>
+            <a href="/" class="btn-back">← Volver al Menú</a>
+            <a href="/logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <div>
+            <!-- Título principal -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2>📅 Mis Turnos Asignados</h2>
+                <p th:text="'Dr/Dra. ' + ${medico.nombre + ' ' + medico.apellido + ' - ' + medico.especialidad}">
+                    Doctor - Especialidad
+                </p>
+                <p><strong>Horario de Atención:</strong> <span th:text="${medico.horario}">Horario</span></p>
+            </div>
+
+
+            <!-- Lista de turnos -->
+            <div th:if="${#lists.isEmpty(turnos)}" class="error-message" style="text-align: center; padding: 40px;">
+                <h3> No tiene turnos asignados</h3>
+                <p>Actualmente no hay turnos programados para usted.</p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(turnos)}">
+                <div style="margin-bottom: 20px;">
+                    <h3>📋 Lista de Turnos Programados</h3>
+                </div>
+
+                <!-- Tabla de turnos -->
+                <div style="overflow-x: auto;">
+                    <table
+                        style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <thead style="background: #007bff; color: white;">
+                            <tr>
+                                <th style="padding: 15px; text-align: left;"> Fecha</th>
+                                <th style="padding: 15px; text-align: left;"> Hora</th>
+                                <th style="padding: 15px; text-align: left;"> Paciente</th>
+                                <th style="padding: 15px; text-align: left;"> DNI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="turno, iterStat : ${turnos}"
+                                th:class="${iterStat.even} ? 'row-even' : 'row-odd'">
+
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <strong
+                                        th:text="${turno.dia + '/' + turno.mes + '/' + turno.anio}">01/01/2025</strong>
+                                </td>
+
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <span style="font-weight: bold; color: #007bff;"
+                                        th:text="${turno.hora}">10:00</span>
+                                </td>
+
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <div>
+                                        <strong
+                                            th:text="${turno.paciente.nombre + ' ' + turno.paciente.apellido}">Nombre
+                                            Paciente</strong>
+                                    </div>
+                                    <small style="color: #666;" th:text="${turno.paciente.telefono}">Teléfono</small>
+                                </td>
+
+                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                    <span th:text="${turno.paciente.dni}">12345678</span>
+                                </td>
+
+                                <td style="padding: 15px; border-bottom: 1px solid #eee; text-align: center;">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/" class="btn btn-secondary">🏠 Volver al Menú Principal</a>
+                <a href="/pacientes" class="btn btn-primary">👥 Ver Pacientes</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .row-even {
+            background-color: #f8f9fa;
+        }
+
+        .row-odd {
+            background-color: white;
+        }
+
+        .row-even:hover,
+        .row-odd:hover {
+            background-color: #e3f2fd !important;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn-back {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th,
+            td {
+                padding: 10px !important;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Agregar animación de carga
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+
+</body>
+
+</html>

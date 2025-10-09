@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Médico - SaludSync</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-logo">SaludSync - MÉDICO</div>
+            <div class="navbar-links">
+                <a href="/medicos" class="btn-back">← Volver</a>
+                <span th:text="'Dr/Dra. ' + ${nombreCompleto}">Dr. Nombre</span>
+                <a href="/logout">Cerrar Sesión</a>
+            </div>
+        </nav>
+        <h2 th:text="${medico.id != null} ? '✏️ Editar Médico' : '🩺 Registrar Nuevo Médico'"></h2>
+
+        <!-- Mensaje de error dinámico -->
+        <div th:if="${error}" class="error-message"
+            style="background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 10px; margin-bottom: 20px; color: #721c24;">
+            <strong>⚠️ Error:</strong> <span th:text="${error}"></span>
+        </div>
+
+        <!-- Mensaje de éxito dinámico -->
+        <div th:if="${param.exito}" class="success-message"
+            style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 10px; margin-bottom: 20px; color: #155724;">
+            <strong>✅ Éxito:</strong>
+            <span th:if="${param.exito[0] == 'medico_guardado'}">Médico registrado correctamente.</span>
+            <span th:if="${param.exito[0] == 'medico_actualizado'}">Médico actualizado correctamente.</span>
+            <span th:if="${param.exito[0] == 'exito' or param.exito[0] == ''}">Operación realizada exitosamente.</span>
+        </div>
+
+        <!-- Mensajes de error por parámetros (legacy) -->
+        <div th:if="${param.error}" class="alert alert-danger">
+            <span th:if="${param.error == 'usuario_existente'}">❌ Error: El nombre de usuario ya existe. Elija
+                otro.</span>
+            <span th:if="${param.error == 'medico_ya_registrado'}">❌ Error: Médico ya registrado con ese DNI.</span>
+            <span th:if="${param.error == 'guardado'}">❌ Error al guardar el médico. Inténtelo nuevamente.</span>
+            <span th:if="${param.error == null or param.error == ''}">❌ Ocurrió un error inesperado. Inténtelo
+                nuevamente.</span>
+        </div>
+
+        <form th:action="${medico.id != null} ? @{'/medicos/editar/' + ${medico.id}} : @{/medicos/guardar}"
+            th:object="${medico}" method="post">
+            <!-- Información de Usuario -->
+            <fieldset>
+                <legend>👤 Credenciales de Acceso</legend>
+                <div sec:authorize="!hasRole('MEDICO')">
+                    <label for="usuario">Nombre de Usuario:</label>
+                    <input type="text" th:field="*{usuario}" id="usuario" placeholder="Ejemplo: dr.juan.perez"
+                        pattern="^[a-zA-Z0-9._]+$" title="Solo letras, números, puntos y guiones bajos"
+                        th:class="${error != null and #strings.contains(error, 'usuario') ? 'campo-error' : ''}"
+                        required>
+
+                    <label for="contraseña">Contraseña:</label>
+                    <input type="password" th:field="*{contraseña}" id="contraseña" placeholder="Mínimo 6 caracteres"
+                        minlength="6" required>
+                </div>
+                <!-- Campo rol oculto, siempre MEDICO -->
+                <input type="hidden" th:field="*{rol}" value="MEDICO">
+            </fieldset>
+
+            <!-- Información Personal -->
+            <fieldset>
+                <legend>📋 Información Personal</legend>
+
+                <div sec:authorize="!hasRole('MEDICO')">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" th:field="*{nombre}" id="nombre" placeholder="Ingrese nombre" required>
+
+                    <label for="apellido">Apellido:</label>
+                    <input type="text" th:field="*{apellido}" id="apellido" placeholder="Ingrese apellido" required>
+
+                    <label for="dni">DNI:</label>
+                    <input type="text" th:field="*{dni}" id="dni" placeholder="12345678" pattern="[0-9]{7,8}"
+                        title="DNI de 7 u 8 dígitos"
+                        th:class="${error != null and #strings.contains(error, 'DNI') ? 'campo-error' : ''}" required>
+
+                    <label for="domicilio">Domicilio:</label>
+                    <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad"
+                        required>
+
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
+                        pattern="[0-9\-\+\(\)\s]+" title="Formato: 11-1234-5678" required>
+                </div>
+            </fieldset>
+
+            <!-- Información Profesional -->
+            <fieldset>
+                <legend>🏥 Información Profesional</legend>
+
+
+                <div sec:authorize="!hasRole('MEDICO')">
+                    <label for="especialidad">Especialidad:</label>
+                    <select th:field="*{especialidad}" id="especialidad" required>
+                        <option value="">Seleccione una especialidad</option>
+                        <option value="Cardiología">Cardiología</option>
+                        <option value="Dermatología">Dermatología</option>
+                        <option value="Endocrinología">Endocrinología</option>
+                        <option value="Gastroenterología">Gastroenterología</option>
+                        <option value="Ginecología">Ginecología</option>
+                        <option value="Medicina General">Medicina General</option>
+                        <option value="Neurología">Neurología</option>
+                        <option value="Oftalmología">Oftalmología</option>
+                        <option value="Ortopedia">Ortopedia</option>
+                        <option value="Pediatría">Pediatría</option>
+                        <option value="Psiquiatría">Psiquiatría</option>
+                        <option value="Traumatología">Traumatología</option>
+                        <option value="Urología">Urología</option>
+                    </select>
+
+                    <label for="horario">Horario de Atención:</label>
+                    <select th:field="*{horario}" id="horario" required>
+                        <option value="">Seleccione un horario</option>
+                        <option value="Mañana (8:00 - 14:00)">Mañana (8:00 - 14:00)</option>
+                        <option value="Tarde (14:00 - 20:00)">Tarde (14:00 - 20:00)</option>
+                        <option value="Tiempo Completo (8:00 - 20:00)">Tiempo Completo (8:00 - 20:00)</option>
+                    </select>
+                </div>
+
+                <!-- Campos ocultos para turnos (se editarán por separado) -->
+                <input type="hidden" th:field="*{turnosSemanales}" th:value="${medico.turnosSemanales ?: 0}">
+                <input type="hidden" th:field="*{turnosCancelados}" th:value="${medico.turnosCancelados ?: 0}">
+
+                <div
+                    style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px; color: #6c757d;">
+                    <strong>📅 Nota:</strong> Los turnos semanales y cancelados se configurarán posteriormente desde la
+                    gestión de turnos.
+                </div>
+            </fieldset>
+
+            <!-- Botones -->
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="submit" class="btn btn-primary"
+                    th:text="${medico.id != null} ? '💾 Guardar Cambios' : '💾 Registrar Médico'"></button>
+                <a href="/medicos" class="btn btn-secondary">❌ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Validación de DNI en tiempo real
+        document.getElementById('dni').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+        });
+    </script>
+
+    <style>
+        /* Mensajes de error y éxito */
+        .error-message {
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        .success-message {
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Destacar campo con error */
+        .campo-error {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff5f5 !important;
+        }
+
+        /* Estilos para alertas legacy */
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        /* Estilo para botón Volver */
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</body>
+
+</html>
