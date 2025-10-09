@@ -6,6 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+<<<<<<< HEAD
+=======
+import java.util.List;
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
 import java.util.Optional;
 
 @Service
@@ -40,6 +44,7 @@ public class TurnosService {
         return turnosRepository.existsByMedicoIdAndDiaAndMesAndAnioAndHora(medicoId, dia, mes, anio, hora);
     }
 
+<<<<<<< HEAD
     // Método para obtener turnos de un médico específico
     public ArrayList<Turnos> obtenerTurnosPorMedico(Long medicoId) {
         return (ArrayList<Turnos>) turnosRepository.findByMedicoIdOrderByAnioAscMesAscDiaAscHoraAsc(medicoId);
@@ -75,4 +80,10 @@ public class TurnosService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+=======
+    // Buscar turnos por médico y fecha específica (usado en validaciones)
+    public List<Turnos> obtenerTurnosPorMedicoYFecha(Long medicoId, Integer dia, Integer mes, Integer anio) {
+        return turnosRepository.findByMedicoIdAndDiaAndMesAndAnio(medicoId, dia, mes, anio);
+    }
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
 }

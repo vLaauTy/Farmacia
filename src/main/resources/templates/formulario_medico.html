@@ -82,8 +82,13 @@
                         title="DNI de 7 u 8 dígitos"
                         th:class="${error != null and #strings.contains(error, 'DNI') ? 'campo-error' : ''}" required>
 
+<<<<<<< HEAD
                     <label for="domicilio">Domicilio:</label>
                     <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad"
+=======
+                    <label for="domicillio">Domicilio:</label>
+                    <input type="text" th:field="*{domicillio}" id="domicillio" placeholder="Calle, número, ciudad"
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
                         required>
 
                     <label for="telefono">Teléfono:</label>

@@ -30,6 +30,7 @@ public class PacienteService {
         return repo.save(paciente);
     }
 
+<<<<<<< HEAD
     public boolean deleteById(Long id) {
         try {
             if (repo.existsById(id)) {
@@ -41,6 +42,11 @@ public class PacienteService {
             // Error si el paciente tiene turnos asociados u otras restricciones
             return false;
         }
+=======
+    public void deleteById(Long id) {
+        // Para implementación temporal sin JPA
+        // Podríamos implementar lógica de eliminación si fuera necesario
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
     }
 
     public Paciente updatePaciente(Long id, Paciente paciente) {

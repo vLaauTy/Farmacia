@@ -25,7 +25,11 @@
             <!-- Saludo principal -->
             <div>
                 <h1 th:text="'¡Hola, ' + ${nombreCompleto} + '!'">¡Hola, Doctor!</h1>
+<<<<<<< HEAD
                 <p>Bienvenido al Sistema de Gestión de turnos</p>
+=======
+                <p>Bienvenido al Sistema de Gestión Farmacia</p>
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
             </div>
 
             <!-- Información del usuario -->
@@ -43,6 +47,7 @@
                         <p>Médico</p>
                     </div>
 
+<<<<<<< HEAD
                 </div>
             </div>
 
@@ -58,6 +63,21 @@
                 <h3>📅 Mis Turnos Asignados</h3>
                 <p>Ver y gestionar los turnos programados para usted</p>
                 <a href="/mis-turnos" class="btn btn-primary">Ver Mis Turnos</a>
+=======
+                    <div>
+                        <h4>🕐 Último acceso</h4>
+                        <p id="fechaActual">Hoy</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Mensaje informativo -->
+            <div>
+                <h3>👨‍⚕️ Gestión de Pacientes</h3>
+                <p>Administrar pacientes del sistema</p>
+                <a href="/pacientes" class="btn btn-editar">Acceder</a>
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
             </div>
 
             <!-- Botón de logout -->
@@ -68,7 +88,24 @@
         </div>
     </div>
 
+<<<<<<< HEAD
 
+=======
+    <script>
+        // Mostrar fecha actual
+        document.addEventListener('DOMContentLoaded', function () {
+            const fecha = new Date();
+            const opciones = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('fechaActual').textContent = fecha.toLocaleDateString('es-ES', opciones);
+        });
+    </script>
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
 
 </body>
 

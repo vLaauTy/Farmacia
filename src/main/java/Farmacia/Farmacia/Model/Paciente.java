@@ -144,4 +144,17 @@ public class Paciente {
         this.turnosPaciente = turnosPaciente;
     }
 
+<<<<<<< HEAD
+=======
+    // ToString para depuración
+    @Override
+    public String toString() {
+        return "Paciente{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", apellido='" + apellido + '\'' +
+                ", dni='" + dni + '\'' +
+                '}';
+    }
+>>>>>>> e3f9340d6092d67050804217941c637763468ac4
 }
