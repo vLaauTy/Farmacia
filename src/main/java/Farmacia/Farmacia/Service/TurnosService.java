@@ -6,10 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-<<<<<<< HEAD
-=======
-import java.util.List;
->>>>>>> e3f9340d6092d67050804217941c637763468ac4
 import java.util.Optional;
 
 @Service
@@ -44,29 +40,30 @@ public class TurnosService {
         return turnosRepository.existsByMedicoIdAndDiaAndMesAndAnioAndHora(medicoId, dia, mes, anio, hora);
     }
 
-<<<<<<< HEAD
     // Método para obtener turnos de un médico específico
     public ArrayList<Turnos> obtenerTurnosPorMedico(Long medicoId) {
         return (ArrayList<Turnos>) turnosRepository.findByMedicoIdOrderByAnioAscMesAscDiaAscHoraAsc(medicoId);
     }
 
-    // Método para verificar si un paciente ya tiene un turno en una fecha y hora específica
+    // Método para verificar si un paciente ya tiene un turno en una fecha y hora
+    // específica
     public boolean existeTurnoPaciente(Long pacienteId, Integer dia, Integer mes, Integer anio, String hora) {
         return turnosRepository.existsByPacienteIdAndDiaAndMesAndAnioAndHora(pacienteId, dia, mes, anio, hora);
     }
 
-    // Método para verificar turnos del paciente excluyendo un ID específico (para edición)
-    public boolean existeTurnoPacienteExcluyendoId(Long pacienteId, Integer dia, Integer mes, Integer anio, String hora, Long turnoId) {
+    // Método para verificar turnos del paciente excluyendo un ID específico (para
+    // edición)
+    public boolean existeTurnoPacienteExcluyendoId(Long pacienteId, Integer dia, Integer mes, Integer anio, String hora,
+            Long turnoId) {
         // Buscar todos los turnos que coincidan con paciente, fecha y hora
         return obtenerTurnos().stream()
-                .anyMatch(turno -> 
-                    turno.getPaciente() != null &&
-                    turno.getPaciente().getId().equals(pacienteId) &&
-                    turno.getDia().equals(dia) &&
-                    turno.getMes().equals(mes) &&
-                    turno.getAnio().equals(anio) &&
-                    turno.getHora().equals(hora) &&
-                    !turno.getId().equals(turnoId) // Excluir el turno actual
+                .anyMatch(turno -> turno.getPaciente() != null &&
+                        turno.getPaciente().getId().equals(pacienteId) &&
+                        turno.getDia().equals(dia) &&
+                        turno.getMes().equals(mes) &&
+                        turno.getAnio().equals(anio) &&
+                        turno.getHora().equals(hora) &&
+                        !turno.getId().equals(turnoId) // Excluir el turno actual
                 );
     }
 
@@ -74,16 +71,11 @@ public class TurnosService {
     public ArrayList<Turnos> obtenerTurnosEntreFechas(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin) {
         return (ArrayList<Turnos>) obtenerTurnos().stream()
                 .filter(turno -> {
-                    java.time.LocalDate fechaTurno = java.time.LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
+                    java.time.LocalDate fechaTurno = java.time.LocalDate.of(turno.getAnio(), turno.getMes(),
+                            turno.getDia());
                     return !fechaTurno.isBefore(fechaInicio) && !fechaTurno.isAfter(fechaFin);
                 })
                 .collect(java.util.stream.Collectors.toList());
     }
 
-=======
-    // Buscar turnos por médico y fecha específica (usado en validaciones)
-    public List<Turnos> obtenerTurnosPorMedicoYFecha(Long medicoId, Integer dia, Integer mes, Integer anio) {
-        return turnosRepository.findByMedicoIdAndDiaAndMesAndAnio(medicoId, dia, mes, anio);
-    }
->>>>>>> e3f9340d6092d67050804217941c637763468ac4
 }

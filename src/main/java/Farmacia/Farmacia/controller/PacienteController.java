@@ -111,17 +111,12 @@ public class PacienteController {
 
     @PostMapping("/pacientes/eliminar/{id}")
     public String eliminarPaciente(@PathVariable("id") Long id) {
-<<<<<<< HEAD
         boolean eliminado = pacienteService.deleteById(id);
         if (eliminado) {
             return "redirect:/pacientes?exito=paciente_eliminado";
         } else {
             return "redirect:/pacientes?error=no_se_puede_eliminar";
         }
-=======
-        pacienteService.deleteById(id);
-        return "redirect:/pacientes";
->>>>>>> e3f9340d6092d67050804217941c637763468ac4
     }
 
 }

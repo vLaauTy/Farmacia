@@ -68,4 +68,9 @@ public class MedicoService {
                 .map(medico -> !medico.getId().equals(id))
                 .orElse(false);
     }
+
+    // Obtiene un médico por su nombre de usuario
+    public Medico getMedicoByUsername(String username) {
+        return repo.findByUsuario(username).orElse(null);
+    }
 }

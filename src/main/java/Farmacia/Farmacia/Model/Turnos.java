@@ -93,7 +93,6 @@ public class Turnos {
         this.hora = hora;
     }
 
-<<<<<<< HEAD
     // ToString para depuración
     @Override
     public String toString() {
@@ -105,6 +104,4 @@ public class Turnos {
                 ", hora='" + hora + '\'' +
                 '}';
     }
-=======
->>>>>>> e3f9340d6092d67050804217941c637763468ac4
 }
