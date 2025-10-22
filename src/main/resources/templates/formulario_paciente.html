@@ -11,11 +11,12 @@
 <body>
     <div class="container">
         <nav class="navbar">
-            <div class="navbar-logo">Sistema Farmacia - PACIENTE</div>
-            <div class="navbar-links">
-                <a href="/pacientes" class="btn-back">← Volver</a>
-                <a href="/logout">Cerrar Sesión</a>
+            <div class="navbar-left">
+                <h1>🏥 SaludSync</h1>
             </div>
+            <ul>
+                <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            </ul>
         </nav>
         <h2
             th:text="${esMedico} ? '🩺 Consulta de Paciente' : (${paciente.id != null} ? '✏️ Editar Paciente' : '🩺 Registrar Nuevo Paciente')">
@@ -75,16 +76,33 @@
 
                     <!-- Campos de obra social que se mostrarán/ocultarán -->
                     <div id="camposObraSocial">
+                        <label for="nombreObraSocial">Obra Social:</label>
+                        <select th:field="*{nombreObraSocial}" id="nombreObraSocial" th:disabled="${esMedico}">
+                            <option value="">Seleccione una obra social</option>
+                            <option value="OSDE">OSDE</option>
+                            <option value="Swiss Medical">Swiss Medical</option>
+                            <option value="Galeno">Galeno</option>
+                            <option value="Medicus">Medicus</option>
+                            <option value="Accord Salud">Accord Salud</option>
+                            <option value="Omint">Omint</option>
+                            <option value="Hospital Italiano">Hospital Italiano</option>
+                            <option value="Hospital Alemán">Hospital Alemán</option>
+                            <option value="Sancor Salud">Sancor Salud</option>
+                            <option value="Federada Salud">Federada Salud</option>
+                            <option value="IOMA">IOMA</option>
+                            <option value="PAMI">PAMI</option>
+                            <option value="Obra Social del Personal de la Alimentación">Obra Social del Personal de la Alimentación</option>
+                            <option value="OSECAC">OSECAC</option>
+                            <option value="OSDEPYM">OSDEPYM</option>
+                            <option value="Otra">Otra</option>
+                        </select>
+
                         <label for="plan">Plan:</label>
-                        <input type="text" th:field="*{plan}" id="plan" placeholder="Plan de obra social"
+                        <input type="text" th:field="*{plan}" id="plan" placeholder="Ej: Plan 210, Plan Familiar, etc."
                             th:readonly="${esMedico}">
 
                         <label for="afiliado">N° de Afiliado:</label>
                         <input type="text" th:field="*{afiliado}" id="afiliado" placeholder="Número de afiliado"
-                            th:readonly="${esMedico}">
-
-                        <label for="numeroTarjeta">N° de Tarjeta:</label>
-                        <input type="text" th:field="*{numeroTarjeta}" id="numeroTarjeta" placeholder="Número de tarjeta"
                             th:readonly="${esMedico}">
                     </div>
                 </div>
@@ -119,16 +137,27 @@
         function toggleCamposObraSocial() {
             const tieneObraSocial = document.getElementById('obraSocial').value;
             const camposObraSocial = document.getElementById('camposObraSocial');
-            const inputs = camposObraSocial.querySelectorAll('input');
+            const selectObraSocial = document.getElementById('nombreObraSocial');
+            const inputPlan = document.getElementById('plan');
+            const inputAfiliado = document.getElementById('afiliado');
 
             if (tieneObraSocial === 'true') {
                 camposObraSocial.style.display = 'block';
+                camposObraSocial.classList.add('show');
+                // Hacer campos obligatorios
+                selectObraSocial.setAttribute('required', 'required');
+                inputPlan.setAttribute('required', 'required');
+                inputAfiliado.setAttribute('required', 'required');
             } else {
                 camposObraSocial.style.display = 'none';
-                inputs.forEach(input => {
-                    input.value = '';
-                    input.removeAttribute('required');
-                });
+                camposObraSocial.classList.remove('show');
+                // Limpiar valores y quitar requerimiento
+                selectObraSocial.value = '';
+                inputPlan.value = '';
+                inputAfiliado.value = '';
+                selectObraSocial.removeAttribute('required');
+                inputPlan.removeAttribute('required');
+                inputAfiliado.removeAttribute('required');
             }
         }
 
@@ -219,7 +248,55 @@
 
         /* Campos de obra social */
         #camposObraSocial {
-            transition: opacity 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        #camposObraSocial label {
+            color: #495057;
+            font-weight: 500;
+        }
+
+        #nombreObraSocial {
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        #nombreObraSocial:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+            outline: 0;
+        }
+
+        /* Destacar campos requeridos de obra social */
+        #camposObraSocial input[required],
+        #camposObraSocial select[required] {
+            border-left: 3px solid #28a745;
+        }
+
+        /* Animación para mostrar campos */
+        #camposObraSocial.show {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding: 0 15px;
+            }
+            to {
+                opacity: 1;
+                max-height: 200px;
+                padding: 15px;
+            }
         }
 
         /* Botones del formulario */

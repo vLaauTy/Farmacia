@@ -1,11 +1,6 @@
 package Farmacia.Farmacia.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "pacientes")
@@ -34,13 +29,13 @@ public class Paciente {
     private Boolean obraSocial;
 
     @Column
+    private String nombreObraSocial;
+
+    @Column
     private String plan;
 
     @Column
     private String afiliado;
-
-    @Column
-    private String numeroTarjeta;
 
     @Column(length = 2000)
     private String historialClinico;
@@ -104,6 +99,14 @@ public class Paciente {
         this.obraSocial = obraSocial;
     }
 
+    public String getNombreObraSocial() {
+        return nombreObraSocial;
+    }
+
+    public void setNombreObraSocial(String nombreObraSocial) {
+        this.nombreObraSocial = nombreObraSocial;
+    }
+
     public String getPlan() {
         return plan;
     }
@@ -118,14 +121,6 @@ public class Paciente {
 
     public void setAfiliado(String afiliado) {
         this.afiliado = afiliado;
-    }
-
-    public String getNumeroTarjeta() {
-        return numeroTarjeta;
-    }
-
-    public void setNumeroTarjeta(String numeroTarjeta) {
-        this.numeroTarjeta = numeroTarjeta;
     }
 
     public String getHistorialClinico() {

@@ -45,6 +45,7 @@ public class UserConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "MEDICO")
+                        .requestMatchers("/mis-turnos").hasRole("MEDICO")
                         .requestMatchers("/medicos/**", "/turnos/**", "/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/").authenticated()
                         .anyRequest().authenticated())

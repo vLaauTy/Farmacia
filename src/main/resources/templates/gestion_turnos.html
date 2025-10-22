@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
@@ -9,14 +9,23 @@
 </head>
 
 <body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <h1>🏥 SaludSync</h1>
+        </div>
+        <ul>
+            <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            <!-- Enlaces para administradores -->
+            <li sec:authorize="hasRole('ADMIN')"><a href="/medicos">👨‍⚕️ Médicos</a></li>
+            <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a href="/turnos">📅 Turnos</a></li>
+            <!-- Enlaces adicionales para médicos -->
+            <li sec:authorize="hasRole('MEDICO')"><a href="/mis-turnos">📅 Mis Turnos</a></li>
+            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
     <div class="container">
-        <nav class="navbar">
-            <div class="navbar-logo">Sistema Farmacia - GESTIÓN TURNOS</div>
-            <div class="navbar-links">
-                <a href="/" class="btn-back">← Volver al Inicio</a>
-                <a href="/logout">Cerrar Sesión</a>
-            </div>
-        </nav>
 
         <h1>📅 Gestión de Turnos</h1>
 
@@ -32,7 +41,7 @@
                 <div class="menu-icon">➕</div>
                 <h3>Nuevo Turno</h3>
                 <p>Crear un nuevo turno médico</p>
-                <a href="/turnos/nuevo" class="btn btn-primary">Crear Turno</a>
+                <a href="/turnos/nuevo" class="btn btn-primary">Crear Turno </a>
             </div>
 
             <div class="menu-card">
@@ -41,28 +50,70 @@
                 <p>Vista de calendario con todos los turnos</p>
                 <a href="/calendario" class="btn btn-primary">Ver Calendario</a>
             </div>
-
-            <div class="menu-card">
-                <div class="menu-icon">�</div>
-                <h3>Estadísticas</h3>
-                <p>Ver estadísticas de turnos</p>
-                <a href="#" class="btn btn-secondary">Próximamente</a>
-            </div>
-
-            <div class="menu-card">
-                <div class="menu-icon">🔍</div>
-                <h3>Buscar</h3>
-                <p>Buscar turnos por criterio</p>
-                <a href="#" class="btn btn-secondary">Próximamente</a>
-            </div>
         </div>
 
-        <div style="margin-top: 40px; text-align: center;">
-            <a href="/" class="btn btn-secondary">🏠 Volver al Inicio</a>
-        </div>
+        
     </div>
 
     <style>
+        /* Estilos estándar de navbar */
+        .navbar {
+            background: linear-gradient(135deg, #1e90ff 0%, #0066cc 100%);
+            padding: 10px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .navbar-left h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .navbar ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .navbar ul li {
+            margin: 0;
+        }
+
+        .navbar ul li a {
+            color: white !important;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+
+        .navbar ul li a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar ul li span {
+            color: white;
+            font-weight: 500;
+            padding: 8px 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
         /* Estilo para botón Volver */
         .btn-back {
             background-color: #6c757d;
@@ -79,11 +130,6 @@
             background-color: #5a6268;
             color: white;
             text-decoration: none;
-        }
-
-        a {
-            background: blue;
-            color: black;
         }
     </style>
 </body>

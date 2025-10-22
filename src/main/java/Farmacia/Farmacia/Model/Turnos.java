@@ -1,13 +1,6 @@
 package Farmacia.Farmacia.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "turnos")
@@ -18,11 +11,11 @@ public class Turnos {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "medico_id")
+    @JoinColumn(name = "medico_id", foreignKey = @ForeignKey(name = "FK_turnos_medico"))
     private Medico medico;
 
     @ManyToOne
-    @JoinColumn(name = "paciente_id")
+    @JoinColumn(name = "paciente_id", foreignKey = @ForeignKey(name = "FK_turnos_paciente"))
     private Paciente paciente;
 
     @Column
@@ -36,6 +29,9 @@ public class Turnos {
 
     @Column
     private String hora;
+
+    @Column
+    private String estado = "ACTIVO";
 
     public Long getId() {
         return id;
@@ -93,15 +89,11 @@ public class Turnos {
         this.hora = hora;
     }
 
-    // ToString para depuración
-    @Override
-    public String toString() {
-        return "Turnos{" +
-                "id=" + id +
-                ", medico=" + (medico != null ? medico.getNombre() + " " + medico.getApellido() : "null") +
-                ", paciente=" + (paciente != null ? paciente.getNombre() + " " + paciente.getApellido() : "null") +
-                ", fecha=" + dia + "/" + mes + "/" + anio +
-                ", hora='" + hora + '\'' +
-                '}';
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

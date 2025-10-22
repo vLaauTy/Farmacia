@@ -12,12 +12,12 @@
 <body>
     <div class="container">
         <nav class="navbar">
-            <div class="navbar-logo">SaludSync - MÉDICO</div>
-            <div class="navbar-links">
-                <a href="/medicos" class="btn-back">← Volver</a>
-                <span th:text="'Dr/Dra. ' + ${nombreCompleto}">Dr. Nombre</span>
-                <a href="/logout">Cerrar Sesión</a>
+            <div class="navbar-left">
+                <h1>🏥 SaludSync</h1>
             </div>
+            <ul>
+                <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            </ul>
         </nav>
         <h2 th:text="${medico.id != null} ? '✏️ Editar Médico' : '🩺 Registrar Nuevo Médico'"></h2>
 
@@ -82,13 +82,8 @@
                         title="DNI de 7 u 8 dígitos"
                         th:class="${error != null and #strings.contains(error, 'DNI') ? 'campo-error' : ''}" required>
 
-<<<<<<< HEAD
                     <label for="domicilio">Domicilio:</label>
                     <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad"
-=======
-                    <label for="domicillio">Domicilio:</label>
-                    <input type="text" th:field="*{domicillio}" id="domicillio" placeholder="Calle, número, ciudad"
->>>>>>> e3f9340d6092d67050804217941c637763468ac4
                         required>
 
                     <label for="telefono">Teléfono:</label>

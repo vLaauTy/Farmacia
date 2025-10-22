@@ -59,7 +59,10 @@ public class TurnosController {
             return "redirect:/login?error=access_denied";
         }
 
-        model.addAttribute("turnos", turnosService.obtenerTurnos());
+        // Obtener turnos activos y contar cancelados del mes
+        model.addAttribute("turnos", turnosService.obtenerTurnosActivos());
+        model.addAttribute("turnosCanceladosDelMes", turnosService.obtenerTurnosCanceladosDelMes());
+        model.addAttribute("nombreMes", turnosService.obtenerNombreDelMes());
         return "turnos";
     }
 
@@ -87,32 +90,62 @@ public class TurnosController {
             @RequestParam(name = "paciente", required = false) Long pacienteId,
             Model model) {
         try {
-            // Validar fecha (debe ser al menos mañana)
+            // Validar fecha (debe ser al menos mañana - al menos 1 día de anticipación)
             LocalDate hoy = LocalDate.now();
             LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
 
             if (!fechaTurno.isAfter(hoy)) {
-                model.addAttribute("error", "Los turnos deben programarse con al menos un día de anterioridad");
+                model.addAttribute("error", "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: " + hoy.plusDays(1));
                 model.addAttribute("turno", turno);
                 model.addAttribute("medicos", medicoService.getAllMedicos());
                 model.addAttribute("pacientes", pacienteService.getAllPacientes());
                 return "formulario_turno";
             }
 
-            // Establecer el médico desde el ID
-            if (medicoId != null) {
-                Medico medico = medicoService.getMedicoById(medicoId);
-                turno.setMedico(medico);
+            // Validar que se haya seleccionado un médico
+            if (medicoId == null) {
+                model.addAttribute("error", "Debe seleccionar un médico");
+                model.addAttribute("turno", turno);
+                model.addAttribute("medicos", medicoService.getAllMedicos());
+                model.addAttribute("pacientes", pacienteService.getAllPacientes());
+                return "formulario_turno";
             }
 
-            // Establecer el paciente desde el ID
-            if (pacienteId != null) {
-                Paciente paciente = pacienteService.getPacienteById(pacienteId);
-                turno.setPaciente(paciente);
+            // Validar que se haya seleccionado un paciente
+            if (pacienteId == null) {
+                model.addAttribute("error", "Debe seleccionar un paciente");
+                model.addAttribute("turno", turno);
+                model.addAttribute("medicos", medicoService.getAllMedicos());
+                model.addAttribute("pacientes", pacienteService.getAllPacientes());
+                return "formulario_turno";
             }
+
+            // Buscar y validar que el médico existe
+            Medico medico = medicoService.getMedicoById(medicoId);
+            if (medico == null) {
+                model.addAttribute("error", "El médico seleccionado no existe");
+                model.addAttribute("turno", turno);
+                model.addAttribute("medicos", medicoService.getAllMedicos());
+                model.addAttribute("pacientes", pacienteService.getAllPacientes());
+                return "formulario_turno";
+            }
+
+            // Buscar y validar que el paciente existe
+            Paciente paciente = pacienteService.getPacienteById(pacienteId);
+            if (paciente == null) {
+                model.addAttribute("error", "El paciente seleccionado no existe");
+                model.addAttribute("turno", turno);
+                model.addAttribute("medicos", medicoService.getAllMedicos());
+                model.addAttribute("pacientes", pacienteService.getAllPacientes());
+                return "formulario_turno";
+            }
+
+            // Establecer el médico y paciente en el turno
+            turno.setMedico(medico);
+            turno.setPaciente(paciente);
 
             // Verificar que el paciente no tenga otro turno en la misma fecha y hora
-            if (pacienteId != null && turnosService.existeTurnoPaciente(pacienteId, turno.getDia(), turno.getMes(),
+            if (turnosService.existeTurnoPaciente(pacienteId, turno.getDia(), turno.getMes(),
                     turno.getAnio(), turno.getHora())) {
                 model.addAttribute("error", "El paciente ya tiene un turno programado para esta fecha y hora");
                 model.addAttribute("turno", turno);
@@ -161,12 +194,12 @@ public class TurnosController {
         try {
             turno.setId(id);
 
-            // Validar fecha (debe ser al menos mañana)
+            // Validar fecha (debe ser al menos mañana - al menos 1 día de anticipación)
             LocalDate hoy = LocalDate.now();
             LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
 
             if (!fechaTurno.isAfter(hoy)) {
-                model.addAttribute("error", "Los turnos deben programarse con al menos un día de anterioridad");
+                model.addAttribute("error", "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: " + hoy.plusDays(1));
                 model.addAttribute("turno", turno);
                 model.addAttribute("medicos", medicoService.getAllMedicos());
                 model.addAttribute("pacientes", pacienteService.getAllPacientes());
@@ -209,8 +242,8 @@ public class TurnosController {
 
     @GetMapping("/turnos/eliminar/{id}")
     public String eliminarTurno(@PathVariable Long id) {
-        turnosService.eliminarTurno(id);
-        return "redirect:/turnos";
+        turnosService.cancelarTurno(id);
+        return "redirect:/turnos?cancelado=true";
     }
 
     @GetMapping("/turnos/horarios/{medicoId}")
@@ -242,23 +275,63 @@ public class TurnosController {
     public String misTurnos(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
-            
+
             // Verificar si el usuario tiene rol de médico
             boolean esMedico = authentication.getAuthorities().stream()
                     .anyMatch(auth -> auth.getAuthority().equals("ROLE_MEDICO"));
-                    
+
             if (esMedico) {
                 // Obtener el médico por su username
                 Medico medico = medicoService.getMedicoByUsername(username);
                 if (medico != null) {
                     // Obtener los turnos del médico
                     List<Turnos> turnos = turnosService.obtenerTurnosPorMedico(medico.getId());
+
+                    // Calcular estadísticas semanales
+                    LocalDate hoy = LocalDate.now();
+
+                    // Calcular inicio y fin de la semana actual (lunes a domingo)
+                    LocalDate inicioSemanaActual = hoy.with(java.time.DayOfWeek.MONDAY);
+                    LocalDate finSemanaActual = hoy.with(java.time.DayOfWeek.SUNDAY);
+
+                    // Calcular inicio y fin de la semana anterior
+                    LocalDate inicioSemanaAnterior = inicioSemanaActual.minusWeeks(1);
+                    LocalDate finSemanaAnterior = finSemanaActual.minusWeeks(1);
+
+                    // Contar turnos de la semana anterior
+                    long turnosSemanaAnterior = turnos.stream()
+                            .filter(turno -> {
+                                LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
+                                return !fechaTurno.isBefore(inicioSemanaAnterior)
+                                        && !fechaTurno.isAfter(finSemanaAnterior);
+                            })
+                            .count();
+
+                    // Contar turnos de la semana actual
+                    long turnosSemanaActual = turnos.stream()
+                            .filter(turno -> {
+                                LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
+                                return !fechaTurno.isBefore(inicioSemanaActual) && !fechaTurno.isAfter(finSemanaActual);
+                            })
+                            .count();
+
+                    // Contar turnos restantes de la semana (desde hoy hasta domingo)
+                    long turnosRestantesSemana = turnos.stream()
+                            .filter(turno -> {
+                                LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
+                                return !fechaTurno.isBefore(hoy) && !fechaTurno.isAfter(finSemanaActual);
+                            })
+                            .count();
+
                     model.addAttribute("turnos", turnos);
                     model.addAttribute("medico", medico);
+                    model.addAttribute("turnosSemanaAnterior", turnosSemanaAnterior);
+                    model.addAttribute("turnosSemanaActual", turnosSemanaActual);
+                    model.addAttribute("turnosRestantesSemana", turnosRestantesSemana);
                     return "mis_turnos_medico";
                 }
             }
-            
+
             // Si no es médico o no se encuentra, redirigir al menú correspondiente
             return "redirect:/menu";
         }
@@ -286,16 +359,19 @@ public class TurnosController {
         List<String> horarios = generarHorarios(LocalTime.of(8, 0), LocalTime.of(20, 0));
 
         // Obtener todos los turnos de estos 8 días
-        List<Turnos> turnosSemanales = turnosService.obtenerTurnosEntreFechas(hoy, hoy.plusDays(7));
+        List<Turnos> turnosSemanales = turnosService.obtenerTurnosEntreFechas(hoy, hoy.plusDays(8));
 
-        // Crear un mapa para búsqueda rápida de turnos
-        java.util.Map<String, String> calendarioTurnos = new java.util.HashMap<>();
+        // Crear un mapa para búsqueda rápida de turnos (permitir múltiples turnos por
+        // horario)
+        java.util.Map<String, java.util.List<String>> calendarioTurnos = new java.util.HashMap<>();
         for (Turnos turno : turnosSemanales) {
             String clave = turno.getDia() + "-" + turno.getMes() + "-" + turno.getAnio() + "-" + turno.getHora();
             String valor = "Dr. " + turno.getMedico().getApellido() + "|" +
                     turno.getMedico().getNombre() + " " + turno.getMedico().getApellido() + "|" +
                     turno.getPaciente().getNombre() + " " + turno.getPaciente().getApellido();
-            calendarioTurnos.put(clave, valor);
+
+            // Si la clave ya existe, agregar a la lista; si no, crear nueva lista
+            calendarioTurnos.computeIfAbsent(clave, k -> new java.util.ArrayList<>()).add(valor);
         }
 
         model.addAttribute("diasSemana", diasSemana);

@@ -22,6 +22,23 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Botón "Volver" estándar dentro de la navbar */
+.navbar a.nav-back {
+    color: #ffffff !important;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.navbar a.nav-back:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+}
+
 /* Fondo y contenedor de Login */
 .login-body {
     background: linear-gradient(to right, #6dd5ed, #2193b0);
@@ -216,10 +233,96 @@ a.btn {
 
 .btn-eliminar {
     background-color: #dc3545;
+    color: white !important;
 }
 
 .btn-eliminar:hover {
     background-color: #c82333;
+    color: white !important;
+}
+
+/* Botones adicionales */
+.btn-delete {
+    background-color: #dc3545;
+    color: white !important;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+    color: white !important;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+    color: #212529 !important;
+}
+
+.btn-edit:hover {
+    background-color: #e0a800;
+    color: #212529 !important;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white !important;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+    color: white !important;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529 !important;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    color: #212529 !important;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white !important;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    color: white !important;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white !important;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    color: white !important;
+}
+
+/* Botón volver consistente */
+.btn-back {
+    background-color: #6c757d !important;
+    color: white !important;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-back:hover {
+    background-color: #5a6268 !important;
+    color: white !important;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Columna de acciones */

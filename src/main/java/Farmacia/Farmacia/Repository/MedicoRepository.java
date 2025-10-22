@@ -15,8 +15,6 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
     List<Medico> findByNombreIgnoreCase(String nombre);
 
-    Medico findByDni(String dni);
-
     Optional<Medico> findOptionalByDni(String dni);
 
     boolean existsByDni(String dni);

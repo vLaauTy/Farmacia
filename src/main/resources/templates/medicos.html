@@ -1,30 +1,35 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Médicos - Sistema Farmacia</title>
+    <title>Gestión de Médicos - SaludSync</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 
 <body>
     <nav class="navbar">
         <div class="navbar-left">
-            <a href="/" class="btn-back">← Volver al Inicio</a>
-            <h1>🏥 Sistema Farmacia</h1>
+            <h1>🏥 SaludSync</h1>
         </div>
         <ul>
-            <li><a href="/medicos">👨‍⚕️ Médicos</a></li>
+            <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            <!-- Enlaces para administradores -->
+            <li sec:authorize="hasRole('ADMIN')"><a href="/medicos">👨‍⚕️ Médicos</a></li>
             <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
-            <li><a href="/turnos">📅 Turnos</a></li>
-            <li><a href="/usuarios">👥 Usuarios</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a href="/turnos">📅 Turnos</a></li>
+            <!-- Enlaces adicionales para médicos -->
+            <li sec:authorize="hasRole('MEDICO')"><a href="/mis-turnos">📅 Mis Turnos</a></li>
             <li><a href="/logout">🚪 Cerrar Sesión</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <h2>👨‍⚕️ Gestión de Médicos</h2>
+        <div class="page-header">
+            <h2>👨‍⚕️ Gestión de Médicos</h2>
+            <a href="/medicos/nuevo" class="btn btn-primary">➕ Nuevo Médico</a>
+        </div>
 
         <!-- Mensajes de estado -->
         <div th:if="${param.exito}" class="alert alert-success">
@@ -38,53 +43,46 @@
         <div th:if="${param.error}" class="alert alert-danger">
             ❌ Error en la operación. Inténtelo nuevamente.
         </div>
-        <div th:if="${medicos != null and #lists.size(medicos) > 0}">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Usuario</th>
-                        <th>Nombre Completo</th>
-                        <th>DNI</th>
-                        <th>Teléfono</th>
-                        <th>Especialidad</th>
-                        <th>Horario</th>
-                        <th>Rol</th>
-                        <th>Turnos Semanales</th>
-                        <th>Turnos Cancelados</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="medico : ${medicos}">
-                        <td th:text="${medico.id}">1</td>
-                        <td>
-                            <strong th:text="${medico.usuario}">dr.ejemplo</strong>
-                            <br><small style="color: #666;">👤 Usuario de login</small>
-                        </td>
-                        <td th:text="${medico.nombre + ' ' + medico.apellido}">Juan Pérez</td>
-                        <td th:text="${medico.dni}">12345678</td>
-                        <td th:text="${medico.telefono}">11-1234-5678</td>
-                        <td th:text="${medico.especialidad}">Cardiología</td>
-                        <td th:text="${medico.horario}">Mañana</td>
-                        <td>
-                            <span
-                                style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                                👨‍⚕️ MÉDICO
-                            </span>
-                        </td>
-                        <td th:text="${medico.turnosSemanales}">0</td>
-                        <td th:text="${medico.turnosCancelados}">0</td>
-                        <td>
-                            <a th:href="@{/medicos/ver/{id}(id=${medico.id})}" class="btn btn-info">👁️ Ver</a>
-                            <a th:href="@{/medicos/editar/{id}(id=${medico.id})}" class="btn btn-warning">✏️ Editar</a>
-                            <a th:href="@{/medicos/eliminar/{id}(id=${medico.id})}" class="btn btn-eliminar"
-                                onclick="return confirm('¿Está seguro de eliminar este médico? También se eliminará su usuario de acceso.')">
-                                🗑️ Eliminar</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <!-- Grid de médicos -->
+        <div th:if="${medicos != null and #lists.size(medicos) > 0}" class="medicos-grid">
+            <div th:each="medico : ${medicos}" class="medico-card">
+                <div class="card-header">
+                    <div class="doctor-info">
+                        <h3 th:text="${medico.nombre + ' ' + medico.apellido}">Dr. Juan Pérez</h3>
+                        <span class="especialidad" th:text="${medico.especialidad}">Cardiología</span>
+                    </div>
+                    <div class="doctor-status">
+                        <span class="role-badge">👨‍⚕️ MÉDICO</span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="label">👤 Usuario:</span>
+                        <span th:text="${medico.usuario}">dr.ejemplo</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">🆔 DNI:</span>
+                        <span th:text="${medico.dni}">12345678</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">📞 Teléfono:</span>
+                        <span th:text="${medico.telefono}">11-1234-5678</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">🕐 Horario:</span>
+                        <span th:text="${medico.horario}">Mañana</span>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <a th:href="@{/medicos/editar/{id}(id=${medico.id})}" class="btn btn-warning">✏️ Editar</a>
+                    <a th:href="@{/medicos/eliminar/{id}(id=${medico.id})}" class="btn btn-eliminar"
+                        onclick="return confirm('¿Está seguro de eliminar este médico? También se eliminará su usuario de acceso.')">
+                        🗑️ Eliminar</a>
+                </div>
+            </div>
         </div>
 
         <div th:if="${medicos == null or #lists.size(medicos) == 0}" class="alert">
@@ -95,14 +93,14 @@
     </div>
 
     <style>
-        /* Estructura de navegación mejorada */
+        /* Estilos estándar de navbar */
         .navbar {
+            background: linear-gradient(135deg, #1e90ff 0%, #0066cc 100%);
+            padding: 10px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
         }
 
         .navbar-left {
@@ -111,9 +109,11 @@
             gap: 15px;
         }
 
-        .navbar h1 {
+        .navbar-left h1 {
+            color: white;
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
         }
 
         .navbar ul {
@@ -122,6 +122,38 @@
             margin: 0;
             padding: 0;
             gap: 20px;
+            align-items: center;
+        }
+
+        .navbar ul li {
+            margin: 0;
+        }
+
+        .navbar ul li a {
+            color: white !important;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+
+        .navbar ul li a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar ul li span {
+            color: white;
+            font-weight: 500;
+            padding: 8px 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .navbar ul li a:hover {
+            opacity: 0.8;
+            color: white;
         }
 
         /* Estilo para botón Volver */
@@ -140,6 +172,136 @@
             background-color: #5a6268;
             color: white;
             text-decoration: none;
+        }
+
+        /* Header de página mejorado */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: #1e90ff;
+        }
+
+        /* Grid de médicos */
+        .medicos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .medico-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .medico-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #1e90ff, #0066cc);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .doctor-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .especialidad {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .role-badge {
+            background: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .card-actions {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .card-actions .btn {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .medicos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .navbar ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         }
     </style>
 </body>

@@ -7,6 +7,64 @@
     <title>Mis Turnos - SaludSync</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
+        /* Estilos estándar de navbar */
+        .navbar {
+            background: linear-gradient(135deg, #1e90ff 0%, #0066cc 100%);
+            padding: 10px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .navbar-left h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .navbar ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .navbar ul li {
+            margin: 0;
+        }
+
+        .navbar ul li a {
+            color: white !important;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+
+        .navbar ul li a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar ul li span {
+            color: white;
+            font-weight: 500;
+            padding: 8px 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
         .turnos-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -131,53 +189,157 @@
             margin-top: 5px;
         }
 
+        /* Colores específicos para diferentes tipos de estadísticas */
+        .resumen-anterior {
+            color: #6c757d !important;
+        }
 
+        .resumen-actual {
+            color: #28a745 !important;
+        }
+
+        .resumen-restantes {
+            color: #ffc107 !important;
+        }
+
+        /* Estilos para fechas de turnos */
+        .turno-pasado {
+            background: rgba(255, 235, 238, 0.6) !important;
+            border-left-color: #dc3545 !important;
+        }
+
+        .turno-esta-semana {
+            background: rgba(255, 248, 225, 0.6) !important;
+            border-left-color: #ffc107 !important;
+        }
+
+        .turno-futuro {
+            background: #fff;
+        }
+
+        /* Estilos para el botón de editar paciente */
+        .btn-editar-paciente {
+            background: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-editar-paciente:hover {
+            background: #218838;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .turno-acciones {
+            border-top: 1px solid #e9ecef;
+            padding-top: 10px;
+        }
+
+        /* Diseño responsive para las tarjetas de resumen */
+        @media (max-width: 768px) {
+            .resumen-turnos {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .resumen-card {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .resumen-turnos {
+                flex-wrap: wrap;
+            }
+
+            .resumen-card {
+                flex: 1 1 calc(50% - 10px);
+                min-width: 200px;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <h1>🏥 SaludSync - Panel Médico</h1>
+        </div>
+        <ul>
+            <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            <li><span th:text="'👨‍⚕️ Dr. ' + ${medico.nombre} + ' ' + ${medico.apellido}">�‍⚕️ Dr. Nombre</span></li>
+            <li><a href="/mis-turnos">📅 Mis Turnos</a></li>
+            <li><a href="/pacientes">🧑‍🤝‍🧑 Mis Pacientes</a></li>
+            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
     <div class="turnos-container">
-        <a th:href="@{/menu}" class="btn-volver">← Volver al Menú</a>
+        
 
         <h1>Mis Turnos Asignados</h1>
 
-        <div class="medico-info" th:if="${medico}">
+    <div class="medico-info" th:if="${medico}">
             <h3>Dr/Dra. <span th:text="${medico.nombre}"></span> <span th:text="${medico.apellido}"></span></h3>
             <p><strong>Especialidad:</strong> <span th:text="${medico.especialidad}"></span></p>
         </div>
 
-        <div class="resumen-turnos" th:if="${turnos}">
+        <!-- Estadísticas semanales -->
+        <div class="resumen-turnos">
             <div class="resumen-card">
                 <div class="resumen-numero" th:text="${#lists.size(turnos)}">0</div>
                 <div class="resumen-texto">Total de Turnos</div>
             </div>
             <div class="resumen-card">
-                <div class="resumen-numero">-</div>
-                <div class="resumen-texto">Próximos Turnos</div>
+                <div class="resumen-numero resumen-anterior" th:text="${turnosSemanaAnterior}">0</div>
+                <div class="resumen-texto">📅 Semana Anterior</div>
+            </div>
+            <div class="resumen-card">
+                <div class="resumen-numero resumen-actual" th:text="${turnosSemanaActual}">0</div>
+                <div class="resumen-texto">📋 Semana Actual</div>
+            </div>
+            <div class="resumen-card">
+                <div class="resumen-numero resumen-restantes" th:text="${turnosRestantesSemana}">0</div>
+                <div class="resumen-texto">⏰ Restantes Esta Semana</div>
             </div>
         </div>
 
         <div th:if="${turnos != null and not #lists.isEmpty(turnos)}">
             <!-- Mostrar todos los turnos ordenados por fecha -->
-            <div th:each="turno : ${turnos}" class="turno-card">
-                
+            <div th:each="turno : ${turnos}" class="turno-card" th:data-dia="${turno.dia}" th:data-mes="${turno.mes}"
+                th:data-anio="${turno.anio}">
+
                 <div class="turno-header">
-                    <div class="turno-fecha" 
-                         th:text="${turno.dia + '/' + turno.mes + '/' + turno.anio}">
+                    <div class="turno-fecha" th:text="${turno.dia + '/' + turno.mes + '/' + turno.anio}">
                     </div>
                     <div class="turno-hora" th:text="${turno.hora}"></div>
-                    <div class="turno-estado estado-pendiente">Programado</div>
                 </div>
 
                 <div class="turno-paciente" th:if="${turno.paciente}">
-                    <strong>Paciente:</strong> 
-                    <span th:text="${turno.paciente.nombre}"></span> 
+                    <strong>Paciente:</strong>
+                    <span th:text="${turno.paciente.nombre}"></span>
                     <span th:text="${turno.paciente.apellido}"></span>
                 </div>
 
                 <div th:if="${turno.paciente}">
                     <small><strong>DNI:</strong> <span th:text="${turno.paciente.dni}"></span></small><br>
                     <small><strong>Teléfono:</strong> <span th:text="${turno.paciente.telefono}"></span></small>
+                </div>
+
+                <!-- Botón para editar paciente -->
+                <div class="turno-acciones" th:if="${turno.paciente}" style="margin-top: 15px; text-align: right;">
+                    <a th:href="@{'/pacientes/editar/' + ${turno.paciente.id}}" class="btn-editar-paciente">
+                        Editar Paciente
+                    </a>
                 </div>
             </div>
         </div>
@@ -187,6 +349,44 @@
             <p>Cuando se asignen turnos a tu consulta, aparecerán aquí.</p>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Obtener fecha actual
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+
+            // Calcular el final de la semana actual (domingo)
+            const inicioSemana = new Date(hoy);
+            const finSemana = new Date(hoy);
+            finSemana.setDate(hoy.getDate() + (7 - hoy.getDay())); // Hasta el próximo domingo
+
+            // Procesar cada tarjeta de turno
+            const tarjetasTurnos = document.querySelectorAll('.turno-card');
+
+            tarjetasTurnos.forEach(function (tarjeta) {
+                const dia = parseInt(tarjeta.getAttribute('data-dia'));
+                const mes = parseInt(tarjeta.getAttribute('data-mes'));
+                const anio = parseInt(tarjeta.getAttribute('data-anio'));
+
+                // Crear fecha del turno
+                const fechaTurno = new Date(anio, mes - 1, dia); // mes - 1 porque JavaScript usa meses basados en 0
+                fechaTurno.setHours(0, 0, 0, 0);
+
+                // Aplicar estilo según la fecha
+                if (fechaTurno < hoy) {
+                    // Turno pasado - fondo rojo suave
+                    tarjeta.classList.add('turno-pasado');
+                } else if (fechaTurno >= hoy && fechaTurno <= finSemana) {
+                    // Turno esta semana - fondo amarillo suave
+                    tarjeta.classList.add('turno-esta-semana');
+                } else {
+                    // Turno futuro - fondo normal
+                    tarjeta.classList.add('turno-futuro');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -1,11 +1,6 @@
 package Farmacia.Farmacia.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "usuarios")
@@ -55,13 +50,4 @@ public class UserModel {
         this.rol = rol;
     }
 
-    // ToString para depuración
-    @Override
-    public String toString() {
-        return "UserModel{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", rol='" + rol + '\'' +
-                '}';
-    }
 }
