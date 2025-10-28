@@ -8,19 +8,21 @@
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 
-<body>
+<body class="theme-turnos">
     <nav class="navbar">
         <div class="navbar-left">
             <h1>🏥 SaludSync</h1>
         </div>
         <ul>
             <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            <li><a href="/">🏡 Inicio</a></li>
             <!-- Enlaces para administradores -->
             <li sec:authorize="hasRole('ADMIN')"><a href="/medicos">👨‍⚕️ Médicos</a></li>
             <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
             <li sec:authorize="hasRole('ADMIN')"><a href="/turnos">📅 Turnos</a></li>
             <!-- Enlaces adicionales para médicos -->
             <li sec:authorize="hasRole('MEDICO')"><a href="/mis-turnos">📅 Mis Turnos</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a href="/calendario">📅 Ver Calendario</a></li>
             <li><a href="/logout">🚪 Cerrar Sesión</a></li>
         </ul>
     </nav>
@@ -39,16 +41,18 @@
         <div class="page-header">
             <div class="header-left">
                 <h2>📅 Gestión de Turnos</h2>
-                <div class="stats-info" sec:authorize="hasRole('ADMIN')">
-                    <div class="stat-card">
-                        <span class="stat-number" th:text="${turnosCanceladosDelMes}">0</span>
-                        <span class="stat-label">🚫 Cancelados en <span th:text="${nombreMes}">mes actual</span></span>
-                    </div>
-                </div>
             </div>
             <div class="header-actions" sec:authorize="hasRole('ADMIN')">
                 <a href="/turnos/nuevo" class="btn btn-primary">➕ Nuevo Turno</a>
                 <a href="/calendario" class="btn btn-info">📅 Ver Calendario</a>
+            </div>
+        </div>
+
+        <!-- Estadística mensual debajo del header para no romper alineación del título y acciones -->
+        <div class="stats-info" sec:authorize="hasRole('ADMIN')">
+            <div class="stat-card">
+                <span class="stat-number" th:text="${turnosCanceladosDelMes}">0</span>
+                <span class="stat-label">🚫 Cancelados en <span th:text="${nombreMes}">mes actual</span></span>
             </div>
         </div>
 
@@ -396,20 +400,33 @@
 
     <style>
         /* Estilos para el diseño mejorado de turnos */
+        /* Layout del contenedor */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
         .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 25px;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 16px 20px;
+            border: 1px solid #cdeedb;
+            /* acorde al tema verde */
             border-radius: 12px;
-            border: 1px solid #dee2e6;
         }
 
         .header-left h2 {
             margin: 0 0 15px 0;
-            color: #1e90ff;
+            color: inherit;
+            /* usa color del tema */
+        }
+
+        .page-header .btn.btn-primary {
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
         }
 
         .header-actions {
@@ -514,8 +531,13 @@
 
             .page-header {
                 flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
+                gap: 12px;
+                align-items: center;
+                text-align: center;
+            }
+
+            .page-header .btn.btn-primary {
+                align-self: center;
             }
 
             .header-actions {

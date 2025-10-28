@@ -8,19 +8,21 @@
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 
-<body>
+<body class="theme-pacientes">
     <nav class="navbar">
         <div class="navbar-left">
             <h1>🏥 SaludSync</h1>
         </div>
         <ul>
             <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            <li><a href="/">🏡 Inicio</a></li>
             <!-- Enlaces para administradores -->
             <li sec:authorize="hasRole('ADMIN')"><a href="/medicos">👨‍⚕️ Médicos</a></li>
             <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
             <li sec:authorize="hasRole('ADMIN')"><a href="/turnos">📅 Turnos</a></li>
             <!-- Enlaces adicionales para médicos -->
             <li sec:authorize="hasRole('MEDICO')"><a href="/mis-turnos">📅 Mis Turnos</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a href="/calendario">📅 Ver Calendario</a></li>
             <li><a href="/logout">🚪 Cerrar Sesión</a></li>
         </ul>
     </nav>

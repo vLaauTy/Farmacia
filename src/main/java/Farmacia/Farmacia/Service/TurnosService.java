@@ -23,9 +23,18 @@ public class TurnosService {
 
     // Método para obtener solo turnos activos (no cancelados)
     public ArrayList<Turnos> obtenerTurnosActivos() {
-        return (ArrayList<Turnos>) obtenerTurnos().stream()
-                .filter(turno -> !"CANCELADO".equals(turno.getEstado()))
-                .collect(java.util.stream.Collectors.toList());
+    ArrayList<Turnos> activos = (ArrayList<Turnos>) obtenerTurnos().stream()
+        .filter(turno -> !"CANCELADO".equals(turno.getEstado()))
+        .collect(java.util.stream.Collectors.toList());
+
+    // Ordenar por fecha y hora (más recientes primero)
+    activos.sort(Comparator
+        .comparing(Turnos::getAnio, Comparator.reverseOrder())
+        .thenComparing(Turnos::getMes, Comparator.reverseOrder())
+        .thenComparing(Turnos::getDia, Comparator.reverseOrder())
+        .thenComparing(t -> LocalTime.parse(t.getHora()), Comparator.reverseOrder()));
+
+    return activos;
     }
 
     // Método para obtener turnos cancelados

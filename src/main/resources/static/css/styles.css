@@ -215,6 +215,213 @@ a.btn {
     transition: background-color 0.3s;
 }
 
+/* ===================== */
+/* THEME PACIENTES (LILA)*/
+/* ===================== */
+:root {
+    --paciente-primary: #8e44ad;
+    /* lila principal */
+    --paciente-primary-2: #a66ad1;
+    /* lila claro para gradiente */
+    --paciente-primary-dark: #6d2c91;
+    /* lila más oscuro */
+    --paciente-accent-bg: #f7f0ff;
+    /* fondo suave */
+    --paciente-accent-text: #5a2a6e;
+    /* texto acento */
+    --paciente-accent-border: #e9d5ff;
+    /* borde suave */
+}
+
+/* Encabezados/secciones con acento lila */
+.theme-pacientes .page-header,
+.theme-pacientes .header-section {
+    background: linear-gradient(135deg, var(--paciente-primary) 0%, var(--paciente-primary-2) 100%);
+    color: #fff;
+}
+
+/* Botones primarios y secundarios con tema lila */
+.theme-pacientes .btn.btn-primary,
+.theme-pacientes a.btn.btn-primary {
+    background: linear-gradient(135deg, var(--paciente-primary), var(--paciente-primary-2));
+    border: 2px solid var(--paciente-primary-dark);
+    color: #fff;
+}
+
+.theme-pacientes .btn.btn-primary:hover,
+.theme-pacientes a.btn.btn-primary:hover {
+    background: linear-gradient(135deg, var(--paciente-primary-dark), #925ac7);
+    border-color: var(--paciente-primary-dark);
+}
+
+.theme-pacientes .btn.btn-secondary,
+.theme-pacientes a.btn.btn-secondary {
+    background: var(--paciente-primary);
+    border: 2px solid var(--paciente-primary);
+}
+
+.theme-pacientes .btn.btn-secondary:hover,
+.theme-pacientes a.btn.btn-secondary:hover {
+    background: var(--paciente-primary-dark);
+}
+
+/* Tablas con acento lila */
+.theme-pacientes table {
+    border: 1px solid var(--paciente-accent-border);
+}
+
+.theme-pacientes table th {
+    background-color: var(--paciente-accent-bg);
+    color: var(--paciente-accent-text);
+}
+
+/* Tarjetas/estadísticas (si aplica) */
+.theme-pacientes .stat-card,
+.theme-pacientes .card-stats,
+.theme-pacientes .paciente-card .card-header {
+    border-color: var(--paciente-accent-border);
+}
+
+.theme-pacientes .stat-number,
+.theme-pacientes .card-icon {
+    color: var(--paciente-primary);
+}
+
+/* Listado de Pacientes: tarjetas en lila */
+.theme-pacientes .paciente-card .card-header {
+    background: linear-gradient(135deg, var(--paciente-primary) 0%, var(--paciente-primary-2) 100%);
+    color: #fff;
+}
+
+.theme-pacientes .paciente-card .card-header h3,
+.theme-pacientes .paciente-card .card-header .dni,
+.theme-pacientes .paciente-card .status-badge {
+    color: #fff;
+}
+
+.theme-pacientes .paciente-card .status-badge {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* Menú Admin/Medico: Card de Pacientes con acento lila */
+.admin-card.card-pacientes,
+.medico-card.card-pacientes {
+    position: relative;
+    border-left: 5px solid var(--paciente-primary);
+}
+
+.admin-card.card-pacientes::before,
+.medico-card.card-pacientes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(135deg, var(--paciente-primary) 0%, var(--paciente-primary-2) 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.admin-card.card-pacientes .btn.btn-primary,
+.medico-card.card-pacientes .btn.btn-primary {
+    background: linear-gradient(135deg, var(--paciente-primary), var(--paciente-primary-2));
+}
+
+.admin-card.card-pacientes .btn.btn-primary:hover,
+.medico-card.card-pacientes .btn.btn-primary:hover {
+    background: linear-gradient(135deg, var(--paciente-primary-dark), #925ac7);
+}
+
+/* ===================== */
+/* THEME MÉDICOS (CELESTE) */
+/* ===================== */
+.theme-medicos .page-header,
+.theme-medicos .header-section {
+    background: linear-gradient(135deg, var(--medico-primary, #1e90ff) 0%, var(--medico-primary-2, #4aa3ff) 100%);
+    color: #fff;
+}
+.theme-medicos .btn.btn-primary,
+.theme-medicos a.btn.btn-primary {
+    background: linear-gradient(135deg, var(--medico-primary, #1e90ff), var(--medico-primary-2, #4aa3ff));
+    border: 2px solid var(--medico-primary-dark, #0066cc);
+    color: #fff;
+}
+.theme-medicos .btn.btn-primary:hover,
+.theme-medicos a.btn.btn-primary:hover {
+    background: linear-gradient(135deg, var(--medico-primary-dark, #0066cc), #0e70d1);
+    border-color: var(--medico-primary-dark, #0066cc);
+}
+.theme-medicos table { border: 1px solid var(--medico-accent-border, #cfe8ff); }
+.theme-medicos table th { background-color: var(--medico-accent-bg, #e9f4ff); color: var(--medico-accent-text, #0d4f8b); }
+.theme-medicos .medico-card .card-header {
+    background: linear-gradient(135deg, var(--medico-primary, #1e90ff) 0%, var(--medico-primary-2, #4aa3ff) 100%);
+    color: #fff;
+}
+.theme-medicos .medico-card .card-header h3,
+.theme-medicos .medico-card .card-header .dni { color: #fff; }
+
+/* Acentos cards en menús para Médicos */
+.admin-card.card-medicos { position: relative; border-left: 5px solid var(--medico-primary, #1e90ff); }
+.admin-card.card-medicos::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(135deg, var(--medico-primary, #1e90ff) 0%, var(--medico-primary-2, #4aa3ff) 100%);
+    border-radius: 12px 12px 0 0;
+}
+.admin-card.card-medicos .card-icon,
+.admin-card.card-medicos .card-content h4 { color: var(--medico-primary, #1e90ff); }
+.admin-card.card-medicos .btn.btn-primary {
+    background: linear-gradient(135deg, var(--medico-primary, #1e90ff), var(--medico-primary-2, #4aa3ff));
+}
+.admin-card.card-medicos .btn.btn-primary:hover {
+    background: linear-gradient(135deg, var(--medico-primary-dark, #0066cc), #0e70d1);
+}
+
+/* ===================== */
+/* THEME TURNOS (VERDE) */
+/* ===================== */
+.theme-turnos .page-header,
+.theme-turnos .header-section {
+    background: linear-gradient(135deg, var(--turno-primary, #2ecc71) 0%, var(--turno-primary-2, #58d68d) 100%);
+    color: #fff;
+}
+.theme-turnos .btn.btn-primary,
+.theme-turnos a.btn.btn-primary {
+    background: linear-gradient(135deg, var(--turno-primary, #2ecc71), var(--turno-primary-2, #58d68d));
+    border: 2px solid var(--turno-primary-dark, #239b56);
+    color: #fff;
+}
+.theme-turnos .btn.btn-primary:hover,
+.theme-turnos a.btn.btn-primary:hover {
+    background: linear-gradient(135deg, var(--turno-primary-dark, #239b56), #2bbf68);
+    border-color: var(--turno-primary-dark, #239b56);
+}
+.theme-turnos table { border: 1px solid var(--turno-accent-border, #cdeedb); }
+.theme-turnos table th { background-color: var(--turno-accent-bg, #eafaf1); color: var(--turno-accent-text, #1d6f42); }
+.theme-turnos .turno-card .card-header {
+    background: linear-gradient(135deg, var(--turno-primary, #2ecc71) 0%, var(--turno-primary-2, #58d68d) 100%);
+    color: #fff;
+}
+.theme-turnos .turno-card .card-header .fecha,
+.theme-turnos .turno-card .card-header .hora { color: #fff; }
+
+/* Acentos para cards de Turnos en menús */
+.admin-card.card-turnos, .medico-card.card-turnos { position: relative; border-left: 5px solid var(--turno-primary, #2ecc71); }
+.admin-card.card-turnos::before, .medico-card.card-turnos::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(135deg, var(--turno-primary, #2ecc71) 0%, var(--turno-primary-2, #58d68d) 100%);
+    border-radius: 12px 12px 0 0;
+}
+.admin-card.card-turnos .card-icon,
+.admin-card.card-turnos .card-content h4,
+.medico-card.card-turnos .card-content h4 { color: var(--turno-primary, #2ecc71); }
+.admin-card.card-turnos .btn.btn-primary,
+.medico-card.card-turnos .btn.btn-primary { background: linear-gradient(135deg, var(--turno-primary, #2ecc71), var(--turno-primary-2, #58d68d)); }
+.admin-card.card-turnos .btn.btn-primary:hover,
+.medico-card.card-turnos .btn.btn-primary:hover { background: linear-gradient(135deg, var(--turno-primary-dark, #239b56), #2bbf68); }
+
 .btn-ver {
     background-color: #17a2b8;
 }

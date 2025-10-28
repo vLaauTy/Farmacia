@@ -8,13 +8,14 @@
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 
-<body>
+<body class="theme-turnos">
     <nav class="navbar">
         <div class="navbar-left">
             <h1>🏥 SaludSync</h1>
         </div>
         <ul>
             <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
+            <li><a href="/">🏡 Inicio</a></li>
             <!-- Enlaces para administradores -->
             <li sec:authorize="hasRole('ADMIN')"><a href="/medicos">👨‍⚕️ Médicos</a></li>
             <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
@@ -22,12 +23,15 @@
             <!-- Enlaces adicionales para médicos -->
             <li sec:authorize="hasRole('MEDICO')"><a href="/mis-turnos">📅 Mis Turnos</a></li>
             <li><a href="/logout">🚪 Cerrar Sesión</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a href="/calendario">📅 Ver Calendario</a></li>
         </ul>
     </nav>
 
     <div class="container">
 
-        <h1>📅 Gestión de Turnos</h1>
+        <div class="page-header">
+            <h2>📅 Gestión de Turnos</h2>
+        </div>
 
         <div class="menu-grid">
             <div class="menu-card">
@@ -43,19 +47,35 @@
                 <p>Crear un nuevo turno médico</p>
                 <a href="/turnos/nuevo" class="btn btn-primary">Crear Turno </a>
             </div>
-
-            <div class="menu-card">
-                <div class="menu-icon">📅</div>
-                <h3>Calendario Semanal</h3>
-                <p>Vista de calendario con todos los turnos</p>
-                <a href="/calendario" class="btn btn-primary">Ver Calendario</a>
-            </div>
         </div>
 
-        
+
     </div>
 
     <style>
+        /* Layout general del contenedor */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* Header uniforme (el color lo aporta theme-turnos) */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 16px 20px;
+            border: 1px solid #cdeedb;
+            border-radius: 12px;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: inherit;
+        }
+
         /* Estilos estándar de navbar */
         .navbar {
             background: linear-gradient(135deg, #1e90ff 0%, #0066cc 100%);
@@ -131,6 +151,22 @@
             color: white;
             text-decoration: none;
         }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+                text-align: center;
+            }
+        }
+
+        /* Cards de acciones básicas */
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 20px 0 30px; }
+        .menu-card { background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform .2s ease, box-shadow .2s ease; }
+        .menu-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); }
+        .menu-card h3 { margin: 0 0 8px; }
+        .menu-card p { color: #666; margin: 0 0 14px; }
     </style>
 </body>
 
