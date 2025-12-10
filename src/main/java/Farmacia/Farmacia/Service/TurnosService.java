@@ -23,18 +23,19 @@ public class TurnosService {
 
     // Método para obtener solo turnos activos (no cancelados)
     public ArrayList<Turnos> obtenerTurnosActivos() {
-    ArrayList<Turnos> activos = (ArrayList<Turnos>) obtenerTurnos().stream()
-        .filter(turno -> !"CANCELADO".equals(turno.getEstado()))
-        .collect(java.util.stream.Collectors.toList());
+        ArrayList<Turnos> activos = (ArrayList<Turnos>) obtenerTurnos().stream()
+                .filter(turno -> !"CANCELADO".equals(turno.getEstado()))
+                .collect(java.util.stream.Collectors.toList());
 
-    // Ordenar por fecha y hora (más recientes primero)
-    activos.sort(Comparator
-        .comparing(Turnos::getAnio, Comparator.reverseOrder())
-        .thenComparing(Turnos::getMes, Comparator.reverseOrder())
-        .thenComparing(Turnos::getDia, Comparator.reverseOrder())
-        .thenComparing(t -> LocalTime.parse(t.getHora()), Comparator.reverseOrder()));
+        // Ordenar por fecha y hora (más recientes primero)
+        //
+        activos.sort(Comparator
+                .comparing(Turnos::getAnio, Comparator.reverseOrder())
+                .thenComparing(Turnos::getMes, Comparator.reverseOrder())
+                .thenComparing(Turnos::getDia, Comparator.reverseOrder())
+                .thenComparing(t -> LocalTime.parse(t.getHora()), Comparator.reverseOrder()));
 
-    return activos;
+        return activos;
     }
 
     // Método para obtener turnos cancelados
@@ -49,7 +50,7 @@ public class TurnosService {
         LocalDate hoy = LocalDate.now();
         int mesActual = hoy.getMonthValue();
         int anioActual = hoy.getYear();
-        
+
         return obtenerTurnos().stream()
                 .filter(turno -> "CANCELADO".equals(turno.getEstado()))
                 .filter(turno -> turno.getMes() == mesActual && turno.getAnio() == anioActual)
@@ -59,8 +60,8 @@ public class TurnosService {
     // Método para obtener nombre del mes actual
     public String obtenerNombreDelMes() {
         LocalDate hoy = LocalDate.now();
-        String[] meses = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                          "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+        String[] meses = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
         return meses[hoy.getMonthValue() - 1];
     }
 
@@ -81,7 +82,8 @@ public class TurnosService {
         }
     }
 
-    // Método para cancelar un turno (marcarlo como cancelado en lugar de eliminarlo)
+    // Método para cancelar un turno (marcarlo como cancelado en lugar de
+    // eliminarlo)
     public boolean cancelarTurno(Long id) {
         try {
             Optional<Turnos> turnoOptional = turnosRepository.findById(id);
@@ -97,24 +99,23 @@ public class TurnosService {
         }
     }
 
-    // Método para verificar si existe un turno en una fecha y hora específica
-    public boolean existeTurnoEnFechaYHora(Long medicoId, Integer dia, Integer mes, Integer anio, String hora) {
-        return turnosRepository.existsByMedicoIdAndDiaAndMesAndAnioAndHora(medicoId, dia, mes, anio, hora);
-    }
-
-    // Método para obtener turnos de un médico específico (ordenados por fecha más reciente primero)
+    // Método para obtener turnos de un médico específico (ordenados por fecha más
+    // reciente primero)
     public ArrayList<Turnos> obtenerTurnosPorMedico(Long medicoId) {
         // Obtener todos los turnos del médico sin ordenamiento específico
-        ArrayList<Turnos> turnos = (ArrayList<Turnos>) turnosRepository.findByMedicoIdOrderByAnioAscMesAscDiaAscHoraAsc(medicoId);
-        
+        ArrayList<Turnos> turnos = (ArrayList<Turnos>) turnosRepository
+                .findByMedicoIdOrderByAnioAscMesAscDiaAscHoraAsc(medicoId);
+
         // Ordenar manualmente por fecha y hora (más reciente primero)
         turnos.sort(Comparator
-            .comparing(Turnos::getAnio, Comparator.reverseOrder()) // Año descendente (2025, 2024, 2023...)
-            .thenComparing(Turnos::getMes, Comparator.reverseOrder()) // Mes descendente (12, 11, 10...)
-            .thenComparing(Turnos::getDia, Comparator.reverseOrder()) // Día descendente (31, 30, 29...)
-            .thenComparing(turno -> LocalTime.parse(turno.getHora()), Comparator.reverseOrder()) // Hora descendente (18:00, 17:00, 16:00...)
+                .comparing(Turnos::getAnio, Comparator.reverseOrder()) // Año descendente (2025, 2024, 2023...)
+                .thenComparing(Turnos::getMes, Comparator.reverseOrder()) // Mes descendente (12, 11, 10...)
+                .thenComparing(Turnos::getDia, Comparator.reverseOrder()) // Día descendente (31, 30, 29...)
+                .thenComparing(turno -> LocalTime.parse(turno.getHora()), Comparator.reverseOrder()) // Hora descendente
+                                                                                                     // (18:00, 17:00,
+                                                                                                     // 16:00...)
         );
-        
+
         return turnos;
     }
 

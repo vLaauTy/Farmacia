@@ -10,6 +10,8 @@ public class Turnos {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Relacion ManyToOne que indica que muchos turnos pueden estar asociados a un
+    // solo médico o paciente
     @ManyToOne
     @JoinColumn(name = "medico_id", foreignKey = @ForeignKey(name = "FK_turnos_medico"))
     private Medico medico;

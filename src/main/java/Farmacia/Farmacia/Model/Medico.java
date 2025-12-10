@@ -158,15 +158,4 @@ public class Medico {
         this.horario = horario;
     }
 
-    // ToString para depuración
-    @Override
-    public String toString() {
-        return "Medico{" +
-                "id=" + id +
-                ", nombre='" + nombre + '\'' +
-                ", apellido='" + apellido + '\'' +
-                ", especialidad='" + especialidad + '\'' +
-                ", horario='" + horario + '\'' +
-                '}';
-    }
 }

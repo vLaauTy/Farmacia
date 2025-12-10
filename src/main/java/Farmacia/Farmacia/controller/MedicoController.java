@@ -37,10 +37,7 @@ public class MedicoController {
 
     @GetMapping("/medicos/nuevo")
     public String mostrarFormulario(Model model) {
-        // Si no hay médico en el modelo (primera carga), crear uno nuevo
-        if (!model.containsAttribute("medico")) {
-            model.addAttribute("medico", new Medico());
-        }
+        model.addAttribute("medico", new Medico());
         return "formulario_medico";
     }
 

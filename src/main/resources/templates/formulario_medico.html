@@ -136,7 +136,7 @@
                 </div>
             </fieldset>
 
-            <!-- Botones -->
+
             <div style="text-align: center; margin-top: 30px;">
                 <button type="submit" class="btn btn-primary"
                     th:text="${medico.id != null} ? '💾 Guardar Cambios' : '💾 Registrar Médico'"></button>
@@ -153,71 +153,6 @@
         });
     </script>
 
-    <style>
-        /* Mensajes de error y éxito */
-        .error-message {
-            animation: slideIn 0.3s ease-in-out;
-        }
-
-        .success-message {
-            animation: slideIn 0.3s ease-in-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Destacar campo con error */
-        .campo-error {
-            border: 2px solid #dc3545 !important;
-            background-color: #fff5f5 !important;
-        }
-
-        /* Estilos para alertas legacy */
-        .alert {
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        /* Estilo para botón Volver */
-        .btn-back {
-            background-color: #6c757d;
-            color: white;
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
-            margin-right: 15px;
-        }
-
-        .btn-back:hover {
-            background-color: #5a6268;
-            color: white;
-            text-decoration: none;
-        }
-    </style>
 </body>
 
 </html>

@@ -33,7 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return User.builder()
                 .username(user.getUsername())
-                .password(user.getPassword()) // Sin encriptar ya que usamos NoOpPasswordEncoder
+                .password(user.getPassword())
                 .authorities(Collections.singletonList(authority))
                 .build();
     }

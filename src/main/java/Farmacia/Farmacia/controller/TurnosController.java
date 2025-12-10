@@ -95,7 +95,9 @@ public class TurnosController {
             LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
 
             if (!fechaTurno.isAfter(hoy)) {
-                model.addAttribute("error", "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: " + hoy.plusDays(1));
+                model.addAttribute("error",
+                        "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: "
+                                + hoy.plusDays(1));
                 model.addAttribute("turno", turno);
                 model.addAttribute("medicos", medicoService.getAllMedicos());
                 model.addAttribute("pacientes", pacienteService.getAllPacientes());
@@ -199,7 +201,9 @@ public class TurnosController {
             LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
 
             if (!fechaTurno.isAfter(hoy)) {
-                model.addAttribute("error", "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: " + hoy.plusDays(1));
+                model.addAttribute("error",
+                        "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: "
+                                + hoy.plusDays(1));
                 model.addAttribute("turno", turno);
                 model.addAttribute("medicos", medicoService.getAllMedicos());
                 model.addAttribute("pacientes", pacienteService.getAllPacientes());
@@ -382,6 +386,12 @@ public class TurnosController {
         return "calendario_turnos";
     } // Métodos auxiliares para generar horarios
 
+    private List<String> generarHorarios(LocalTime inicio, LocalTime fin) {
+        return Stream.iterate(inicio, time -> time.isBefore(fin), time -> time.plus(Duration.ofMinutes(30)))
+                .map(time -> time.format(DateTimeFormatter.ofPattern("HH:mm")))
+                .toList();
+    }
+
     private List<String> generarHorariosPorTipo(String horario) {
         return switch (horario) {
             case "Mañana (8:00 - 14:00)" -> generarHorarios(LocalTime.of(8, 0), LocalTime.of(14, 0));
@@ -391,9 +401,4 @@ public class TurnosController {
         };
     }
 
-    private List<String> generarHorarios(LocalTime inicio, LocalTime fin) {
-        return Stream.iterate(inicio, time -> time.isBefore(fin), time -> time.plus(Duration.ofMinutes(30)))
-                .map(time -> time.format(DateTimeFormatter.ofPattern("HH:mm")))
-                .toList();
-    }
 }

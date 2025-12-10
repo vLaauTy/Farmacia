@@ -38,11 +38,7 @@ public class PacienteController {
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MEDICO"));
 
         model.addAttribute("esMedico", esMedico);
-
-        // Si no hay paciente en el modelo (primera carga), crear uno nuevo
-        if (!model.containsAttribute("paciente")) {
-            model.addAttribute("paciente", new Paciente());
-        }
+        model.addAttribute("paciente", new Paciente());
 
         return "formulario_paciente";
     }
