@@ -71,7 +71,7 @@ echo ========================================
 echo   INICIANDO APLICACION...
 echo ========================================
 echo.
-echo [ESPERA] Esto puede tardar 10-20 segundos...
+echo [ESPERA] 
 echo.
 echo Una vez que veas el mensaje:
 echo "Started FarmaciaApplication in X seconds"
@@ -84,8 +84,7 @@ echo   Usuario: admin
 echo   Password: admin
 echo.
 echo ========================================
-echo   [!] NO CIERRES ESTA VENTANA
-echo   [!] Presiona Ctrl+C para detener
+echo    Presiona Ctrl+C para detener
 echo ========================================
 echo.
 echo.

@@ -1,5 +1,4 @@
 
-
 ##  Requisitos
 - Java 21 o superior
 
@@ -34,9 +33,9 @@ Este script crea una carpeta `SaludSync_Portable/` lista para:
 ./mvnw spring-boot:run
 ```
 
-## 📦 Portabilidad - Cómo Llevar la Aplicación a Otro Equipo
+##  Portabilidad - Cómo Llevar la Aplicación a Otro Equipo
 
-### 📁 Archivos Necesarios para Portabilidad:
+###  Archivos Necesarios para Portabilidad:
 
 Para ejecutar en otro dispositivo, necesitas copiar:
 
@@ -48,7 +47,7 @@ Para ejecutar en otro dispositivo, necesitas copiar:
        └── farmaciadb.mv.db
 ```
 
-### 🚀 Pasos para Distribución:
+###  Pasos para Distribución:
 
 
 **En el otro equipo:**
@@ -56,7 +55,7 @@ Para ejecutar en otro dispositivo, necesitas copiar:
 2. Doble clic en `Iniciar_SaludSync.bat`
 3. Todos los médicos, pacientes y turnos estarán disponibles
 
-### ⚠️ Requisitos en el Equipo Destino:
+###  Requisitos en el Equipo Destino:
 - ✅ Java 21 o superior instalado
 - ✅ Windows (los scripts .bat son para Windows)
 
