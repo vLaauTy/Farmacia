@@ -1,3 +1,9 @@
+SaludSync
+
+Les doy la bienvenido a mi proyecto final de mi carrera llamado SaludSync.
+Consiste en un sistema de turnos medicos, donde la persona encargada del consultorio tendra que coordinar utilizando el sistema, el turno entre el medico y el usuario
+Es una aplicacion donde la idea es que se utilize de manera local, donde la estarian utilizando medicos y la persona encargada de coordinar los turnos.
+
 
 ##  Requisitos
 - Java 21 o superior
