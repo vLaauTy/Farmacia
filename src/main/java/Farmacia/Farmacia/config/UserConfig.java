@@ -11,6 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 import Farmacia.Farmacia.Service.CustomUserDetailsService;
+import Farmacia.Farmacia.Repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
@@ -18,8 +19,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class UserConfig {
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new CustomUserDetailsService();
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return new CustomUserDetailsService(userRepository);
     }
 
     @Bean
@@ -35,7 +36,9 @@ public class UserConfig {
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "MEDICO")
                         .requestMatchers("/mis-turnos").hasRole("MEDICO")
-                        .requestMatchers("/medicos/**", "/turnos/**", "/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/medicos/**", "/turnos/**", "/usuarios", "/usuarios/**",
+                            "/correo-prueba")
+                        .hasRole("ADMIN")
                         .requestMatchers("/").authenticated()
                         .anyRequest().authenticated())
                 .formLogin(form -> form

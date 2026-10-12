@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - SaludSync</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <h1>SaludSync - Usuarios</h1>
+        </div>
+        <ul>
+            <li><a href="/">Inicio</a></li>
+            <li><a href="/logout">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
+    <main class="admin-container">
+        <div class="admin-header">
+            <h2>Cuentas registradas</h2>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="usuario : ${usuarios}">
+                        <td th:text="${usuario.username}"></td>
+                        <td th:text="${usuario.rol}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(usuarios)}">
+                        <td colspan="2">No hay usuarios registrados.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>

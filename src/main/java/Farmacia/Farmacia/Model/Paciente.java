@@ -26,6 +26,9 @@ public class Paciente {
     private String telefono;
 
     @Column
+    private String email;
+
+    @Column
     private Boolean obraSocial;
 
     @Column
@@ -89,6 +92,14 @@ public class Paciente {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Boolean getObraSocial() {

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -27,6 +28,7 @@ import Farmacia.Farmacia.Model.Paciente;
 import Farmacia.Farmacia.Service.TurnosService;
 import Farmacia.Farmacia.Service.MedicoService;
 import Farmacia.Farmacia.Service.PacienteService;
+import Farmacia.Farmacia.Service.TurnoEmailService;
 
 @Controller
 @RequestMapping
@@ -40,6 +42,9 @@ public class TurnosController {
 
     @Autowired
     private PacienteService pacienteService;
+
+    @Autowired
+    private TurnoEmailService turnoEmailService;
 
     @GetMapping("/turnos/gestion")
     public String gestionTurnos(Authentication authentication) {
@@ -88,7 +93,8 @@ public class TurnosController {
     public String guardarTurno(@ModelAttribute Turnos turno,
             @RequestParam(name = "medico", required = false) Long medicoId,
             @RequestParam(name = "paciente", required = false) Long pacienteId,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes) {
         try {
             // Validar fecha (debe ser al menos mañana - al menos 1 día de anticipación)
             LocalDate hoy = LocalDate.now();
@@ -157,7 +163,12 @@ public class TurnosController {
             }
 
             turnosService.guardarTurno(turno);
-            return "redirect:/turnos";
+            var errorCorreo = turnoEmailService.enviarConfirmacion(turno);
+            if (errorCorreo.isPresent()) {
+                redirectAttributes.addFlashAttribute("correoError", errorCorreo.get());
+                return "redirect:/turnos?correo=pendiente";
+            }
+            return "redirect:/turnos?correo=enviado";
         } catch (Exception e) {
             model.addAttribute("error", "Error al guardar el turno: " + e.getMessage());
             model.addAttribute("turno", turno);

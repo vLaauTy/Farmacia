@@ -39,7 +39,7 @@ if errorlevel 1 (
     color 0C
     echo [ERROR] Java no esta instalado o no esta en el PATH.
     echo.
-    echo Descarga e instala Java 21 o superior desde:
+    echo Descarga e instala Java 25 LTS o superior desde:
     echo https://www.oracle.com/java/technologies/downloads/
     echo.
     echo Presiona cualquier tecla para salir...

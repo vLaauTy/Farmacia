@@ -1,6 +1,5 @@
-
 ##  Requisitos
-- Java 21 o superior
+- Java 25 LTS o superior
 
 ##  Instalación y Ejecución
 
@@ -28,7 +27,7 @@ Este script crea una carpeta `SaludSync_Portable/` lista para:
 - ✅ Comprimir en ZIP
 - ✅ Incluye todo lo necesario para ejecutar
 
-### �🔧 Opción 4: Ejecutar con Maven (Desarrolladores)
+### 🔧 Opción 4: Ejecutar con Maven (Desarrolladores)
 ```bash
 ./mvnw spring-boot:run
 ```
@@ -56,6 +55,25 @@ Para ejecutar en otro dispositivo, necesitas copiar:
 3. Todos los médicos, pacientes y turnos estarán disponibles
 
 ###  Requisitos en el Equipo Destino:
-- ✅ Java 21 o superior instalado
-- ✅ Windows (los scripts .bat son para Windows)
+
+## Confirmación de turnos por correo
+
+Al crear un turno se envía una confirmación al email cargado en el paciente. El mensaje contiene solo la fecha, la hora y el profesional. La configuración de ejecución de VS Code lee las variables SMTP desde `.env`.
+
+1. Copiá `.env.example` con el nombre `.env` en la raíz del proyecto.
+2. En `.env`, reemplazá la cuenta de ejemplo y pegá la contraseña de aplicación de Gmail.
+3. Reiniciá SaludSync desde VS Code y usá **Prueba de correo** en el panel administrador.
+
+El archivo `.env` está excluido de Git: no compartas ni publiques sus credenciales. Para Gmail se necesita una contraseña de aplicación, no la contraseña normal. Si se inicia desde PowerShell con Maven, definí las mismas variables en esa terminal antes de ejecutar:
+
+```powershell
+$env:MAIL_HOST = 'smtp.gmail.com'
+$env:MAIL_PORT = '587'
+$env:MAIL_USERNAME = 'tu-cuenta@gmail.com'
+$env:MAIL_PASSWORD = 'contraseña-de-aplicación'
+$env:MAIL_FROM = 'tu-cuenta@gmail.com'
+.\mvnw.cmd spring-boot:run
+```
+
+Si SMTP o el email del paciente no están configurados, el turno igualmente se guarda y la aplicación informa que el correo quedó pendiente.
 

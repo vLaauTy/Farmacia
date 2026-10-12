@@ -67,6 +67,10 @@
                     <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
                         pattern="[0-9\-\+\(\)\s]+" title="Formato: 11-1234-5678" th:readonly="${esMedico}" required>
 
+                    <label for="email">Correo electrónico:</label>
+                    <input type="email" th:field="*{email}" id="email" placeholder="paciente@ejemplo.com"
+                        th:readonly="${esMedico}">
+
                     <label for="obraSocial">¿Tiene Obra Social?</label>
                     <select th:field="*{obraSocial}" id="obraSocial" th:disabled="${esMedico}" required>
                         <option value="">Seleccione</option>

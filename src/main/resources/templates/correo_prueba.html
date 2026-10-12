@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de correo - SaludSync</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body class="theme-turnos">
+    <nav class="navbar">
+        <div class="navbar-left">
+            <h1>SaludSync - Prueba de correo</h1>
+        </div>
+        <ul>
+            <li><a href="/">Inicio</a></li>
+            <li><a href="/logout">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <h2>Enviar correo de prueba</h2>
+
+        <div th:if="${mensaje}" class="success-message" th:text="${mensaje}"></div>
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+        <form th:action="@{/correo-prueba}" method="post">
+            <label for="destinatario">Enviar a:</label>
+            <input type="email" id="destinatario" name="destinatario"
+                th:value="${destinatario}" placeholder="persona@ejemplo.com" required>
+            <button type="submit" class="btn btn-primary">Enviar prueba</button>
+        </form>
+    </main>
+</body>
+
+</html>

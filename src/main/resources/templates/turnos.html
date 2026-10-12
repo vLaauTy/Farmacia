@@ -37,6 +37,16 @@
             del mes.
         </div>
 
+        <div th:if="${param.correo != null and param.correo[0] == 'enviado'}" class="success-message">
+            Se agendó el turno y se envió la confirmación por correo.
+        </div>
+        <div th:if="${correoError != null}" class="error-message" th:text="${correoError}"></div>
+        <div th:if="${param.correo != null and param.correo[0] == 'pendiente' and correoError == null}"
+            class="error-message">
+            El turno quedó agendado, pero no se pudo enviar el correo. Verificá el email del paciente y la configuración
+            SMTP.
+        </div>
+
         <!-- Header con estadísticas y acciones -->
         <div class="page-header">
             <div class="header-left">
