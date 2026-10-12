@@ -19,8 +19,7 @@ if %ERRORLEVEL% EQU 0 (
     echo El archivo JAR se encuentra en:
     echo target\Farmacia-0.0.1-SNAPSHOT.jar
     echo.
-    echo Para ejecutar la aplicacion, usa: run.bat
-    echo O ejecuta: java -jar target\Farmacia-0.0.1-SNAPSHOT.jar
+    echo Para ejecutar la aplicacion, usa: Iniciar_SaludSync.bat
     echo.
 ) else (
     echo.

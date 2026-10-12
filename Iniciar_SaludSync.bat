@@ -66,6 +66,13 @@ if not errorlevel 1 (
     echo.
 )
 
+REM Cargar la configuracion de correo (MAIL_HOST, MAIL_USERNAME, ...) desde .env si existe
+if exist ".env" (
+    for /f "usebackq eol=# tokens=1,* delims==" %%A in (".env") do set "%%A=%%B"
+    echo [OK] Configuracion de correo cargada desde .env
+    echo.
+)
+
 REM Ejecutar la aplicación
 echo ========================================
 echo   INICIANDO APLICACION...
