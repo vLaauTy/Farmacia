@@ -1,111 +1,146 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 Calendario de Turnos - SaludSync</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+<head th:replace="~{fragments/layout :: head('Calendario')}"></head>
 
-</head>
+<body>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('calendario')}"></th:block>
 
-<body class="theme-turnos">
-    <div class="container">
-        <nav class="navbar">
-            <div class="navbar-left">
-                <h1>🏥 SaludSync</h1>
+        <main class="main">
+            <div class="content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Calendario</h1>
+                        <p class="page-subtitle">
+                            Próximos 8 días ·
+                            <span th:text="${#lists.size(turnos)} + (${#lists.size(turnos) == 1} ? ' turno' : ' turnos')">0 turnos</span>
+                        </p>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" onclick="location.reload()">
+                            <svg class="icon"><use href="/images/icons.svg#refresh"></use></svg> Actualizar
+                        </button>
+                        <a th:href="@{/turnos/nuevo}" class="btn btn-primary">
+                            <svg class="icon"><use href="/images/icons.svg#plus"></use></svg> Nuevo turno
+                        </a>
+                    </div>
+                </div>
+
+                <div class="legend mb-3" id="leyenda-medicos"></div>
+
+                <section class="card">
+                    <div class="cal-wrap">
+                        <table class="cal">
+                            <thead>
+                                <tr>
+                                    <th class="time-col"><span class="sr-only">Hora</span></th>
+                                    <th th:each="dia, it : ${diasSemana}" th:classappend="${it.first} ? 'today'"
+                                        th:data-fecha="${dia}">
+                                        <div class="dow js-dow">&nbsp;</div>
+                                        <div class="dnum" th:text="${#temporals.day(dia)}">1</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="hora : ${horarios}" th:data-hora="${hora}">
+                                    <td class="time-col" th:text="${hora}">08:00</td>
+                                    <td th:each="dia, it : ${diasSemana}" class="slot-cell" th:classappend="${it.first} ? 'today-col'"
+                                        th:with="clave=${#temporals.format(dia, 'yyyy-MM-dd') + ' ' + hora}">
+                                        <button type="button" class="event" th:each="t : ${calendarioTurnos.get(clave)}"
+                                            th:with="medico=${t.medico.nombre + ' ' + t.medico.apellido},
+                                                     paciente=${t.paciente.nombre + ' ' + t.paciente.apellido}"
+                                            th:data-medico="${medico}" th:data-paciente="${paciente}"
+                                            th:data-hora="${hora}" th:data-fecha="${dia}"
+                                            th:title="${paciente + ' · Dr. ' + t.medico.apellido}">
+                                            <span th:text="${paciente}">Paciente</span>
+                                            <small th:text="'Dr. ' + ${t.medico.apellido}">Dr. Pérez</small>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
-            <ul>
-                <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
-            </ul>
-        </nav>
-
-        <!-- Header -->
-        <div class="header-section">
-            <h2>📅 Calendario Semanal de Turnos</h2>
-            <p class="subtitle">Vista general de todos los turnos programados para esta semana</p>
-        </div>
-
-
-
-        <!-- Calendario -->
-        <div class="calendario-container">
-            <table class="calendario-table">
-                <thead>
-                    <tr>
-                        <th class="hora-col">🕒 Hora</th>
-                        <th th:each="dia, iterStat : ${diasSemana}"
-                            th:class="${#temporals.format(dia, 'yyyy-MM-dd').equals(#temporals.format(#temporals.createNow(), 'yyyy-MM-dd'))} ? 'dia-header dia-hoy' : 'dia-header'">
-                            <div th:text="${#temporals.format(dia, 'EEEE', new java.util.Locale('es'))}"></div>
-                            <div th:text="${#temporals.format(dia, 'd/M')}"></div>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="hora : ${horarios}">
-                        <td class="hora-col" th:text="${hora}">8:00</td>
-                        <td th:each="dia : ${diasSemana}" class="turno-cell">
-                            <!-- Generar clave para buscar turnos en el mapa -->
-                            <div
-                                th:with="claveTurno=${#temporals.day(dia) + '-' + #temporals.month(dia) + '-' + #temporals.year(dia) + '-' + hora}">
-                                <!-- Mostrar todos los turnos para esta fecha y hora -->
-                                <div th:if="${calendarioTurnos.containsKey(claveTurno)}">
-                                    <div th:each="turnoInfo : ${calendarioTurnos.get(claveTurno)}"
-                                        th:with="infoTurno=${#strings.arraySplit(turnoInfo, '|')}" class="turno-info"
-                                        th:title="${'Dr. ' + infoTurno[1] + ' - Paciente: ' + infoTurno[2]}"
-                                        th:text="${infoTurno[0]}" th:data-medico="${infoTurno[1]}"
-                                        th:data-paciente="${infoTurno[2]}" th:data-hora="${hora}"
-                                        onclick="mostrarDetallesTurno(this)">
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-
+        </main>
     </div>
 
+    <div class="modal" id="modal-turno" role="dialog" aria-modal="true" aria-labelledby="mt-titulo">
+        <div class="modal-dialog">
+            <div class="modal-body">
+                <span class="modal-icon info"><svg class="icon"><use href="/images/icons.svg#calendar"></use></svg></span>
+                <div style="flex:1">
+                    <h3 id="mt-titulo">Detalle del turno</h3>
+                    <dl class="detail-list">
+                        <dt>Fecha</dt><dd id="mt-fecha"></dd>
+                        <dt>Hora</dt><dd id="mt-hora"></dd>
+                        <dt>Paciente</dt><dd id="mt-paciente"></dd>
+                        <dt>Médico</dt><dd id="mt-medico"></dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a th:href="@{/turnos}" class="btn btn-secondary">Ir a turnos</a>
+                <button type="button" class="btn btn-primary" data-modal-close data-autofocus>Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
     <script>
-        // Función para mostrar detalles del turno
-        function mostrarDetallesTurno(elemento) {
-            const medico = elemento.getAttribute('data-medico');
-            const paciente = elemento.getAttribute('data-paciente');
-            const hora = elemento.getAttribute('data-hora');
-            alert(`📅 Detalles del Turno\n\n👨‍⚕️ Médico: ${medico}\n👤 Paciente: ${paciente}\n🕒 Hora: ${hora}`);
-        }
+        (function () {
+            const colores = ['#0f766e', '#2563eb', '#9333ea', '#c2410c', '#be185d', '#0891b2', '#65a30d', '#b45309'];
+            const asignados = {};
+            const fmt = (iso, opts) => new Date(iso + 'T00:00').toLocaleDateString('es-AR', opts);
 
-        // Auto-refresh cada 5 minutos para mantener actualizado
-        setTimeout(() => {
-            if (confirm('¿Actualizar el calendario para ver los cambios más recientes?')) {
-                location.reload();
-            }
-        }, 300000); // 5 minutos
-
-        // Resaltar la hora actual si es hoy
-        document.addEventListener('DOMContentLoaded', function () {
-            const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
-            const currentTime = `${currentHour.toString().padStart(2, '0')}:${currentMinute < 30 ? '00' : '30'}`;
-
-            // Buscar y resaltar la fila de la hora actual
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const horaCell = row.querySelector('.hora-col');
-                if (horaCell && horaCell.textContent.trim() === currentTime) {
-                    row.style.backgroundColor = '#fff3cd';
-                }
+            // Nombres de los días
+            document.querySelectorAll('th[data-fecha]').forEach(function (th) {
+                th.querySelector('.js-dow').textContent = fmt(th.dataset.fecha, { weekday: 'short' }).replace('.', '');
             });
-        });
+
+            // Color por médico + leyenda
+            document.querySelectorAll('.event').forEach(function (ev) {
+                const m = ev.dataset.medico;
+                if (!(m in asignados)) asignados[m] = colores[Object.keys(asignados).length % colores.length];
+                ev.style.setProperty('--ev', asignados[m]);
+            });
+            const leyenda = document.getElementById('leyenda-medicos');
+            Object.keys(asignados).forEach(function (m) {
+                const s = document.createElement('span');
+                s.innerHTML = '<i style="background:' + asignados[m] + ';border-color:' + asignados[m] + '"></i>';
+                s.appendChild(document.createTextNode(m));
+                leyenda.appendChild(s);
+            });
+
+            // Fila de la hora actual
+            const ahora = new Date();
+            const actual = String(ahora.getHours()).padStart(2, '0') + ':' + (ahora.getMinutes() < 30 ? '00' : '30');
+            const fila = document.querySelector('tr[data-hora="' + actual + '"]');
+            if (fila) fila.classList.add('now-row');
+
+            // Desplazar la grilla al primer turno de la semana (o a la hora actual si no hay)
+            const wrap = document.querySelector('.cal-wrap');
+            const primero = document.querySelector('.event');
+            const destino = primero ? primero.closest('tr') : fila;
+            if (destino) {
+                const cabecera = document.querySelector('.cal thead').offsetHeight;
+                wrap.scrollTop = Math.max(0, destino.offsetTop - cabecera - 8);
+            }
+
+            // Detalle del turno
+            const modal = document.getElementById('modal-turno');
+            document.addEventListener('click', function (e) {
+                const ev = e.target.closest('.event');
+                if (!ev) return;
+                document.getElementById('mt-fecha').textContent = fmt(ev.dataset.fecha, { weekday: 'long', day: 'numeric', month: 'long' });
+                document.getElementById('mt-hora').textContent = ev.dataset.hora + ' h';
+                document.getElementById('mt-paciente').textContent = ev.dataset.paciente;
+                document.getElementById('mt-medico').textContent = ev.dataset.medico;
+                window.SaludSync.abrirModal(modal);
+            });
+        })();
     </script>
-</body>
-
-</html>
-
-
 </body>
 
 </html>

@@ -1,131 +1,147 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Turnos - SaludSync</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Mis turnos')}"></head>
 
 <body>
-    <nav class="navbar">
-        <div class="navbar-left">
-            <h1>🏥 SaludSync - Panel Médico</h1>
-        </div>
-        <ul>
-            <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
-            <li><span th:text="'👨‍⚕️ Dr. ' + ${medico.nombre} + ' ' + ${medico.apellido}">�‍⚕️ Dr. Nombre</span></li>
-            <li><a href="/mis-turnos">📅 Mis Turnos</a></li>
-            <li><a href="/pacientes">🧑‍🤝‍🧑 Mis Pacientes</a></li>
-            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
-        </ul>
-    </nav>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('mis-turnos')}"></th:block>
 
-    <div class="turnos-container">
-        
-
-        <h1>Mis Turnos Asignados</h1>
-
-    <div class="medico-info" th:if="${medico}">
-            <h3>Dr/Dra. <span th:text="${medico.nombre}"></span> <span th:text="${medico.apellido}"></span></h3>
-            <p><strong>Especialidad:</strong> <span th:text="${medico.especialidad}"></span></p>
-        </div>
-
-        <!-- Estadísticas semanales -->
-        <div class="resumen-turnos">
-            <div class="resumen-card">
-                <div class="resumen-numero" th:text="${#lists.size(turnos)}">0</div>
-                <div class="resumen-texto">Total de Turnos</div>
-            </div>
-            <div class="resumen-card">
-                <div class="resumen-numero resumen-anterior" th:text="${turnosSemanaAnterior}">0</div>
-                <div class="resumen-texto">📅 Semana Anterior</div>
-            </div>
-            <div class="resumen-card">
-                <div class="resumen-numero resumen-actual" th:text="${turnosSemanaActual}">0</div>
-                <div class="resumen-texto">📋 Semana Actual</div>
-            </div>
-            <div class="resumen-card">
-                <div class="resumen-numero resumen-restantes" th:text="${turnosRestantesSemana}">0</div>
-                <div class="resumen-texto">⏰ Restantes Esta Semana</div>
-            </div>
-        </div>
-
-        <div th:if="${turnos != null and not #lists.isEmpty(turnos)}">
-            <!-- Mostrar todos los turnos ordenados por fecha -->
-            <div th:each="turno : ${turnos}" class="turno-card" th:data-dia="${turno.dia}" th:data-mes="${turno.mes}"
-                th:data-anio="${turno.anio}">
-
-                <div class="turno-header">
-                    <div class="turno-fecha" th:text="${turno.dia + '/' + turno.mes + '/' + turno.anio}">
+        <main class="main">
+            <div class="content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Mis turnos</h1>
+                        <p class="page-subtitle">
+                            <span th:text="${medico.nombre + ' ' + medico.apellido}">Dr.</span> ·
+                            <span th:text="${medico.especialidad}">Especialidad</span> ·
+                            <span th:text="${medico.horario}">Horario</span>
+                        </p>
                     </div>
-                    <div class="turno-hora" th:text="${turno.hora}"></div>
                 </div>
 
-                <div class="turno-paciente" th:if="${turno.paciente}">
-                    <strong>Paciente:</strong>
-                    <span th:text="${turno.paciente.nombre}"></span>
-                    <span th:text="${turno.paciente.apellido}"></span>
-                </div>
+                <section class="grid grid-4 mb-4" aria-label="Resumen semanal">
+                    <div class="card stat">
+                        <span class="stat-icon warning"><svg class="icon"><use href="/images/icons.svg#clock"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Restantes esta semana</div>
+                            <div class="stat-value" th:text="${turnosRestantesSemana}">0</div>
+                        </div>
+                    </div>
+                    <div class="card stat">
+                        <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#calendar"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Semana actual</div>
+                            <div class="stat-value" th:text="${turnosSemanaActual}">0</div>
+                        </div>
+                    </div>
+                    <div class="card stat">
+                        <span class="stat-icon info"><svg class="icon"><use href="/images/icons.svg#activity"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Semana anterior</div>
+                            <div class="stat-value" th:text="${turnosSemanaAnterior}">0</div>
+                        </div>
+                    </div>
+                    <div class="card stat">
+                        <span class="stat-icon success"><svg class="icon"><use href="/images/icons.svg#calendar-days"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Total asignados</div>
+                            <div class="stat-value" th:text="${#lists.size(turnos)}">0</div>
+                        </div>
+                    </div>
+                </section>
 
-                <div th:if="${turno.paciente}">
-                    <small><strong>DNI:</strong> <span th:text="${turno.paciente.dni}"></span></small><br>
-                    <small><strong>Teléfono:</strong> <span th:text="${turno.paciente.telefono}"></span></small>
-                </div>
+                <section class="card" th:if="${not #lists.isEmpty(turnos)}">
+                    <div class="toolbar">
+                        <label class="search">
+                            <span class="sr-only">Buscar paciente</span>
+                            <svg class="icon"><use href="/images/icons.svg#search"></use></svg>
+                            <input type="search" class="input" data-filter="agenda" placeholder="Buscar paciente o DNI">
+                        </label>
+                        <div class="seg" data-seg-for="agenda" role="group" aria-label="Período">
+                            <button type="button" class="active" data-value="proximo">Próximos</button>
+                            <button type="button" data-value="pasado">Pasados</button>
+                            <button type="button" data-value="all">Todos</button>
+                        </div>
+                        <span class="toolbar-count" data-count-for="agenda"></span>
+                    </div>
 
-                <!-- Botón para editar paciente -->
-                <div class="turno-acciones" th:if="${turno.paciente}" style="margin-top: 15px; text-align: right;">
-                    <a th:href="@{'/pacientes/editar/' + ${turno.paciente.id}}" class="btn-editar-paciente">
-                        Editar Paciente
-                    </a>
-                </div>
+                    <div class="appt-list" id="agenda" data-group="proximo">
+                        <div class="appt" data-row th:each="turno : ${turnos}"
+                            th:data-fecha="${turno.anio + '-' + #numbers.formatInteger(turno.mes, 2) + '-' + #numbers.formatInteger(turno.dia, 2)}"
+                            th:data-hora="${turno.hora}">
+                            <div class="appt-date">
+                                <div class="d" th:text="${turno.dia}">15</div>
+                                <div class="m js-mes">&nbsp;</div>
+                            </div>
+                            <div style="min-width:0">
+                                <div class="person-name">
+                                    <span th:text="${turno.hora}" class="mono">10:30</span> ·
+                                    <span th:text="${turno.paciente?.nombre + ' ' + turno.paciente?.apellido}">Paciente</span>
+                                    <span class="js-estado"></span>
+                                </div>
+                                <div class="appt-meta" th:if="${turno.paciente}">
+                                    <span><svg class="icon icon-sm"><use href="/images/icons.svg#id-card"></use></svg> <span th:text="'DNI ' + ${turno.paciente.dni}">DNI</span></span>
+                                    <span><svg class="icon icon-sm"><use href="/images/icons.svg#phone"></use></svg> <span th:text="${turno.paciente.telefono}">Tel</span></span>
+                                    <span class="js-dia"></span>
+                                </div>
+                            </div>
+                            <a th:if="${turno.paciente}" th:href="@{'/pacientes/editar/' + ${turno.paciente.id}}" class="btn btn-sm btn-secondary">
+                                <svg class="icon"><use href="/images/icons.svg#file-text"></use></svg> Historial
+                            </a>
+                        </div>
+                        <div class="no-results empty" style="display:none;padding:32px">
+                            <p style="margin:0">No hay turnos para mostrar con este filtro.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card empty" th:if="${#lists.isEmpty(turnos)}">
+                    <span class="empty-icon"><svg class="icon icon-lg"><use href="/images/icons.svg#calendar"></use></svg></span>
+                    <h3>No tenés turnos asignados</h3>
+                    <p>Cuando la administración agende turnos con vos, van a aparecer acá.</p>
+                </section>
             </div>
-        </div>
-
-        <div th:if="${turnos == null or #lists.isEmpty(turnos)}" class="no-turnos">
-            <h3>No tienes turnos asignados</h3>
-            <p>Cuando se asignen turnos a tu consulta, aparecerán aquí.</p>
-        </div>
+        </main>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Obtener fecha actual
+        (function () {
             const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+            const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            const hoyIso = iso(hoy);
+            const fin = new Date(hoy);
+            fin.setDate(hoy.getDate() + ((7 - hoy.getDay()) % 7));
+            const finIso = iso(fin);
 
-            // Calcular el final de la semana actual (domingo)
-            const inicioSemana = new Date(hoy);
-            const finSemana = new Date(hoy);
-            finSemana.setDate(hoy.getDate() + (7 - hoy.getDay())); // Hasta el próximo domingo
-
-            // Procesar cada tarjeta de turno
-            const tarjetasTurnos = document.querySelectorAll('.turno-card');
-
-            tarjetasTurnos.forEach(function (tarjeta) {
-                const dia = parseInt(tarjeta.getAttribute('data-dia'));
-                const mes = parseInt(tarjeta.getAttribute('data-mes'));
-                const anio = parseInt(tarjeta.getAttribute('data-anio'));
-
-                // Crear fecha del turno
-                const fechaTurno = new Date(anio, mes - 1, dia); // mes - 1 porque JavaScript usa meses basados en 0
-                fechaTurno.setHours(0, 0, 0, 0);
-
-                // Aplicar estilo según la fecha
-                if (fechaTurno < hoy) {
-                    // Turno pasado - fondo rojo suave
-                    tarjeta.classList.add('turno-pasado');
-                } else if (fechaTurno >= hoy && fechaTurno <= finSemana) {
-                    // Turno esta semana - fondo amarillo suave
-                    tarjeta.classList.add('turno-esta-semana');
+            const lista = document.getElementById('agenda');
+            if (!lista) return;
+            const items = Array.from(lista.querySelectorAll('.appt'));
+            items.forEach(function (el) {
+                const f = el.dataset.fecha;
+                const d = new Date(f + 'T00:00');
+                el.querySelector('.js-mes').textContent = d.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '')
+                    + (d.getFullYear() !== hoy.getFullYear() ? ' ' + String(d.getFullYear()).slice(2) : '');
+                el.querySelector('.js-dia') && (el.querySelector('.js-dia').textContent = d.toLocaleDateString('es-AR', { weekday: 'long' }));
+                const est = el.querySelector('.js-estado');
+                if (f < hoyIso) {
+                    el.dataset.group = 'pasado';
+                    el.classList.add('is-past');
                 } else {
-                    // Turno futuro - fondo normal
-                    tarjeta.classList.add('turno-futuro');
+                    el.dataset.group = 'proximo';
+                    if (f === hoyIso) est.innerHTML = ' <span class="badge badge-warning badge-dot">Hoy</span>';
+                    if (f <= finIso) el.classList.add('is-week');
                 }
             });
-        });
+            // Próximos: el más cercano primero. Pasados: el más reciente primero
+            const clave = i => i.dataset.fecha + ' ' + i.dataset.hora.padStart(5, '0');
+            const vacio = lista.querySelector('.no-results');
+            const proximos = items.filter(i => i.dataset.group === 'proximo').sort((a, b) => clave(a).localeCompare(clave(b)));
+            const pasados = items.filter(i => i.dataset.group === 'pasado').sort((a, b) => clave(b).localeCompare(clave(a)));
+            proximos.concat(pasados).forEach(i => lista.insertBefore(i, vacio));
+        })();
     </script>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 
 </html>

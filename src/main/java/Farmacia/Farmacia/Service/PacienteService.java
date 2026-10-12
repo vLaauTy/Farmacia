@@ -3,12 +3,14 @@ package Farmacia.Farmacia.Service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import Farmacia.Farmacia.Model.Paciente;
 import Farmacia.Farmacia.Repository.PacienteRepository;
 
 @Service
 public class PacienteService {
+
     private final PacienteRepository repo;
 
     public PacienteService(PacienteRepository repo) {
@@ -20,48 +22,37 @@ public class PacienteService {
     }
 
     public Paciente getPacienteById(Long id) {
-        return repo.findAll().stream()
-                .filter(p -> p.getId() != null && p.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        return repo.findById(id).orElse(null);
     }
 
-    public Paciente savePaciente(Paciente paciente) {
-        return repo.save(paciente);
+    public void savePaciente(Paciente paciente) {
+        repo.save(paciente);
     }
 
-    public boolean deleteById(Long id) {
-        try {
-            if (repo.existsById(id)) {
-                repo.deleteById(id);
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            // Error si el paciente tiene turnos asociados u otras restricciones
-            return false;
-        }
-    }
-
-    public Paciente updatePaciente(Long id, Paciente paciente) {
+    public void updatePaciente(Long id, Paciente paciente) {
         paciente.setId(id);
-        return repo.save(paciente);
+        repo.save(paciente);
     }
 
-    public List<Paciente> findByNombre(String nombre) {
-        return repo.findAll().stream()
-                .filter(paciente -> paciente.getNombre().equalsIgnoreCase(nombre))
-                .toList();
+    // El médico solo puede modificar el historial clínico
+    public void actualizarHistorial(Long id, String historialClinico) {
+        repo.findById(id).ifPresent(paciente -> {
+            paciente.setHistorialClinico(historialClinico);
+            repo.save(paciente);
+        });
     }
 
-    public boolean existePacientePorDni(String dni) {
-        return repo.existsByDni(dni);
-    }
-
-    public boolean existePacientePorDniExcluyendoId(String dni, Long id) {
+    // Indica si otro paciente (distinto de idExcluido) ya usa ese DNI
+    public boolean existeOtroConDni(String dni, Long idExcluido) {
         return repo.findByDni(dni)
-                .map(paciente -> !paciente.getId().equals(id))
+                .map(paciente -> !paciente.getId().equals(idExcluido))
                 .orElse(false);
     }
 
+    // Falla si el paciente tiene turnos asignados
+    @Transactional
+    public void eliminar(Long id) {
+        repo.deleteById(id);
+        repo.flush(); // fuerza la verificación de turnos asociados acá y no al confirmar
+    }
 }

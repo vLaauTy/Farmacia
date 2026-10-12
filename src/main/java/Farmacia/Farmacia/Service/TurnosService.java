@@ -1,155 +1,133 @@
 package Farmacia.Farmacia.Service;
 
-import Farmacia.Farmacia.Model.Turnos;
-import Farmacia.Farmacia.Repository.TurnosRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import org.springframework.stereotype.Service;
+
+import Farmacia.Farmacia.Model.Medico;
+import Farmacia.Farmacia.Model.Turnos;
+import Farmacia.Farmacia.Repository.TurnosRepository;
 
 @Service
 public class TurnosService {
 
-    @Autowired
-    TurnosRepository turnosRepository;
+    // Del más antiguo al más reciente
+    private static final Comparator<Turnos> POR_FECHA_Y_HORA = Comparator
+            .comparing(Turnos::getFecha)
+            .thenComparing(turno -> LocalTime.parse(turno.getHora()));
 
-    public ArrayList<Turnos> obtenerTurnos() {
-        return (ArrayList<Turnos>) turnosRepository.findAll();
+    private static final String[] MESES = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
+
+    private final TurnosRepository turnosRepository;
+
+    public TurnosService(TurnosRepository turnosRepository) {
+        this.turnosRepository = turnosRepository;
     }
 
-    // Método para obtener solo turnos activos (no cancelados)
-    public ArrayList<Turnos> obtenerTurnosActivos() {
-        ArrayList<Turnos> activos = (ArrayList<Turnos>) obtenerTurnos().stream()
-                .filter(turno -> !"CANCELADO".equals(turno.getEstado()))
-                .collect(java.util.stream.Collectors.toList());
-
-        // Ordenar por fecha y hora (más recientes primero)
-        //
-        activos.sort(Comparator
-                .comparing(Turnos::getAnio, Comparator.reverseOrder())
-                .thenComparing(Turnos::getMes, Comparator.reverseOrder())
-                .thenComparing(Turnos::getDia, Comparator.reverseOrder())
-                .thenComparing(t -> LocalTime.parse(t.getHora()), Comparator.reverseOrder()));
-
-        return activos;
-    }
-
-    // Método para obtener turnos cancelados
-    public ArrayList<Turnos> obtenerTurnosCancelados() {
-        return (ArrayList<Turnos>) obtenerTurnos().stream()
-                .filter(turno -> "CANCELADO".equals(turno.getEstado()))
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    // Método para obtener turnos cancelados del mes actual
-    public long obtenerTurnosCanceladosDelMes() {
-        LocalDate hoy = LocalDate.now();
-        int mesActual = hoy.getMonthValue();
-        int anioActual = hoy.getYear();
-
-        return obtenerTurnos().stream()
-                .filter(turno -> "CANCELADO".equals(turno.getEstado()))
-                .filter(turno -> turno.getMes() == mesActual && turno.getAnio() == anioActual)
-                .count();
-    }
-
-    // Método para obtener nombre del mes actual
-    public String obtenerNombreDelMes() {
-        LocalDate hoy = LocalDate.now();
-        String[] meses = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
-        return meses[hoy.getMonthValue() - 1];
-    }
-
-    public Turnos guardarTurno(Turnos turno) {
-        return turnosRepository.save(turno);
+    public List<Turnos> obtenerTurnos() {
+        return turnosRepository.findAll();
     }
 
     public Optional<Turnos> obtenerPorId(Long id) {
         return turnosRepository.findById(id);
     }
 
-    public boolean eliminarTurno(Long id) {
-        try {
-            turnosRepository.deleteById(id);
-            return true;
-        } catch (Exception err) {
-            return false;
-        }
+    public void guardarTurno(Turnos turno) {
+        turnosRepository.save(turno);
     }
 
-    // Método para cancelar un turno (marcarlo como cancelado en lugar de
-    // eliminarlo)
-    public boolean cancelarTurno(Long id) {
-        try {
-            Optional<Turnos> turnoOptional = turnosRepository.findById(id);
-            if (turnoOptional.isPresent()) {
-                Turnos turno = turnoOptional.get();
-                turno.setEstado("CANCELADO");
-                turnosRepository.save(turno);
-                return true;
-            }
-            return false;
-        } catch (Exception err) {
-            return false;
-        }
+    // Los turnos no se borran: se marcan como cancelados para llevar la estadística
+    public void cancelarTurno(Long id) {
+        turnosRepository.findById(id).ifPresent(turno -> {
+            turno.setEstado(Turnos.CANCELADO);
+            turnosRepository.save(turno);
+        });
     }
 
-    // Método para obtener turnos de un médico específico (ordenados por fecha más
-    // reciente primero)
-    public ArrayList<Turnos> obtenerTurnosPorMedico(Long medicoId) {
-        // Obtener todos los turnos del médico sin ordenamiento específico
-        ArrayList<Turnos> turnos = (ArrayList<Turnos>) turnosRepository
-                .findByMedicoIdOrderByAnioAscMesAscDiaAscHoraAsc(medicoId);
-
-        // Ordenar manualmente por fecha y hora (más reciente primero)
-        turnos.sort(Comparator
-                .comparing(Turnos::getAnio, Comparator.reverseOrder()) // Año descendente (2025, 2024, 2023...)
-                .thenComparing(Turnos::getMes, Comparator.reverseOrder()) // Mes descendente (12, 11, 10...)
-                .thenComparing(Turnos::getDia, Comparator.reverseOrder()) // Día descendente (31, 30, 29...)
-                .thenComparing(turno -> LocalTime.parse(turno.getHora()), Comparator.reverseOrder()) // Hora descendente
-                                                                                                     // (18:00, 17:00,
-                                                                                                     // 16:00...)
-        );
-
-        return turnos;
+    // Turnos no cancelados, del más reciente al más antiguo
+    public List<Turnos> obtenerTurnosActivos() {
+        return activos(turnosRepository.findAll().stream())
+                .sorted(POR_FECHA_Y_HORA.reversed())
+                .toList();
     }
 
-    // Método para verificar si un paciente ya tiene un turno en una fecha y hora
-    // específica
-    public boolean existeTurnoPaciente(Long pacienteId, Integer dia, Integer mes, Integer anio, String hora) {
-        return turnosRepository.existsByPacienteIdAndDiaAndMesAndAnioAndHora(pacienteId, dia, mes, anio, hora);
+    // Turnos no cancelados de un médico, del más reciente al más antiguo
+    public List<Turnos> obtenerTurnosPorMedico(Long medicoId) {
+        return activos(turnosRepository.findByMedicoId(medicoId).stream())
+                .sorted(POR_FECHA_Y_HORA.reversed())
+                .toList();
     }
 
-    // Método para verificar turnos del paciente excluyendo un ID específico (para
-    // edición)
-    public boolean existeTurnoPacienteExcluyendoId(Long pacienteId, Integer dia, Integer mes, Integer anio, String hora,
-            Long turnoId) {
-        // Buscar todos los turnos que coincidan con paciente, fecha y hora
-        return obtenerTurnos().stream()
-                .anyMatch(turno -> turno.getPaciente() != null &&
-                        turno.getPaciente().getId().equals(pacienteId) &&
-                        turno.getDia().equals(dia) &&
-                        turno.getMes().equals(mes) &&
-                        turno.getAnio().equals(anio) &&
-                        turno.getHora().equals(hora) &&
-                        !turno.getId().equals(turnoId) // Excluir el turno actual
-                );
+    // Turnos no cancelados entre dos fechas (ambas incluidas)
+    public List<Turnos> obtenerTurnosEntreFechas(LocalDate desde, LocalDate hasta) {
+        return activos(turnosRepository.findAll().stream())
+                .filter(turno -> !turno.getFecha().isBefore(desde) && !turno.getFecha().isAfter(hasta))
+                .toList();
     }
 
-    // Método para obtener turnos entre fechas específicas
-    public ArrayList<Turnos> obtenerTurnosEntreFechas(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin) {
-        return (ArrayList<Turnos>) obtenerTurnos().stream()
-                .filter(turno -> {
-                    java.time.LocalDate fechaTurno = java.time.LocalDate.of(turno.getAnio(), turno.getMes(),
-                            turno.getDia());
-                    return !fechaTurno.isBefore(fechaInicio) && !fechaTurno.isAfter(fechaFin);
-                })
-                .collect(java.util.stream.Collectors.toList());
+    public long obtenerTurnosCanceladosDelMes() {
+        YearMonth mesActual = YearMonth.now();
+        return turnosRepository.findAll().stream()
+                .filter(Turnos::isCancelado)
+                .filter(turno -> YearMonth.from(turno.getFecha()).equals(mesActual))
+                .count();
     }
 
+    public String obtenerNombreDelMes() {
+        return MESES[LocalDate.now().getMonthValue() - 1];
+    }
+
+    // ---------- Disponibilidad ----------
+
+    public boolean medicoOcupado(Long medicoId, LocalDate fecha, String hora, Long turnoExcluido) {
+        return existeTurnoActivo(turno -> turno.getMedico() != null && turno.getMedico().getId().equals(medicoId),
+                fecha, hora, turnoExcluido);
+    }
+
+    public boolean pacienteOcupado(Long pacienteId, LocalDate fecha, String hora, Long turnoExcluido) {
+        return existeTurnoActivo(turno -> turno.getPaciente() != null && turno.getPaciente().getId().equals(pacienteId),
+                fecha, hora, turnoExcluido);
+    }
+
+    // Busca un turno activo en la misma fecha y hora que cumpla la condición,
+    // ignorando el turno que se está editando
+    private boolean existeTurnoActivo(Predicate<Turnos> condicion, LocalDate fecha, String hora, Long turnoExcluido) {
+        return activos(turnosRepository.findAll().stream())
+                .filter(turno -> !turno.getId().equals(turnoExcluido))
+                .filter(turno -> turno.getFecha().equals(fecha) && turno.getHora().equals(hora))
+                .anyMatch(condicion);
+    }
+
+    // ---------- Horarios ----------
+
+    // Horarios cada 30 minutos según el turno de atención del médico
+    public List<String> horariosDelMedico(Medico medico) {
+        return switch (medico.getHorario()) {
+            case "Mañana (8:00 - 14:00)" -> generarHorarios(LocalTime.of(8, 0), LocalTime.of(14, 0));
+            case "Tarde (14:00 - 20:00)" -> generarHorarios(LocalTime.of(14, 0), LocalTime.of(20, 0));
+            case "Tiempo Completo (8:00 - 20:00)" -> generarHorarios(LocalTime.of(8, 0), LocalTime.of(20, 0));
+            default -> List.of();
+        };
+    }
+
+    // Horarios cada 30 minutos entre inicio (incluido) y fin (excluido), en formato HH:mm
+    public List<String> generarHorarios(LocalTime inicio, LocalTime fin) {
+        return Stream.iterate(inicio, hora -> hora.isBefore(fin), hora -> hora.plus(Duration.ofMinutes(30)))
+                .map(hora -> hora.format(DateTimeFormatter.ofPattern("HH:mm")))
+                .toList();
+    }
+
+    private static Stream<Turnos> activos(Stream<Turnos> turnos) {
+        return turnos.filter(turno -> !turno.isCancelado());
+    }
 }

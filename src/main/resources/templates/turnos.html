@@ -1,187 +1,160 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turnos - SaludSync</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Turnos')}"></head>
 
-<body class="theme-turnos">
-    <nav class="navbar">
-        <div class="navbar-left">
-            <h1>🏥 SaludSync</h1>
-        </div>
-        <ul>
-            <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
-            <li><a href="/">🏡 Inicio</a></li>
-            <!-- Enlaces para administradores -->
-            <li sec:authorize="hasRole('ADMIN')"><a href="/medicos">👨‍⚕️ Médicos</a></li>
-            <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
-            <li sec:authorize="hasRole('ADMIN')"><a href="/turnos">📅 Turnos</a></li>
-            <!-- Enlaces adicionales para médicos -->
-            <li sec:authorize="hasRole('MEDICO')"><a href="/mis-turnos">📅 Mis Turnos</a></li>
-            <li sec:authorize="hasRole('ADMIN')"><a href="/calendario">📅 Ver Calendario</a></li>
-            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
-        </ul>
-    </nav>
+<body>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('turnos')}"></th:block>
 
-    <div class="container">
-
-        <h2>📅 Lista de Turnos</h2>
-
-        <!-- Mensaje de confirmación de cancelación -->
-        <div th:if="${param.cancelado}" class="alert alert-success">
-            ✅ <strong>Turno cancelado exitosamente.</strong> El turno ha sido agregado al contador de turnos cancelados
-            del mes.
-        </div>
-
-        <div th:if="${param.correo != null and param.correo[0] == 'enviado'}" class="success-message">
-            Se agendó el turno y se envió la confirmación por correo.
-        </div>
-        <div th:if="${correoError != null}" class="error-message" th:text="${correoError}"></div>
-        <div th:if="${param.correo != null and param.correo[0] == 'pendiente' and correoError == null}"
-            class="error-message">
-            El turno quedó agendado, pero no se pudo enviar el correo. Verificá el email del paciente y la configuración
-            SMTP.
-        </div>
-
-        <!-- Header con estadísticas y acciones -->
-        <div class="page-header">
-            <div class="header-left">
-                <h2>📅 Gestión de Turnos</h2>
-            </div>
-            <div class="header-actions" sec:authorize="hasRole('ADMIN')">
-                <a href="/turnos/nuevo" class="btn btn-primary">➕ Nuevo Turno</a>
-                <a href="/calendario" class="btn btn-info">📅 Ver Calendario</a>
-            </div>
-        </div>
-
-        <!-- Estadística mensual debajo del header para no romper alineación del título y acciones -->
-        <div class="stats-info" sec:authorize="hasRole('ADMIN')">
-            <div class="stat-card">
-                <span class="stat-number" th:text="${turnosCanceladosDelMes}">0</span>
-                <span class="stat-label">🚫 Cancelados en <span th:text="${nombreMes}">mes actual</span></span>
-            </div>
-        </div>
-
-        <!-- Grid de turnos -->
-        <div class="turnos-grid">
-            <div th:each="turno : ${turnos}" class="turno-card">
-                <div class="card-header">
-                    <div class="fecha-hora">
-                        <div class="fecha" th:text="${turno.dia + '/' + turno.mes + '/' + turno.anio}">15/10/2025</div>
-                        <div class="hora" th:text="${turno.hora}">10:30</div>
+        <main class="main">
+            <div class="content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Turnos</h1>
+                        <p class="page-subtitle">
+                            Agenda de la clínica ·
+                            <span th:text="${turnosCanceladosDelMes} + (${turnosCanceladosDelMes == 1} ? ' cancelado' : ' cancelados') + ' en ' + ${nombreMes}">0 cancelados</span>
+                        </p>
                     </div>
-                    <div class="turno-id" th:text="'#' + ${turno.id}">#123</div>
-                </div>
-
-                <div class="card-body">
-                    <div class="participantes">
-                        <div class="medico">
-                            <span class="label">👨‍⚕️ Médico:</span>
-                            <span class="name" th:text="${turno.medico?.nombre + ' ' + turno.medico?.apellido}">Dr. Juan
-                                Pérez</span>
-                        </div>
-                        <div class="paciente">
-                            <span class="label">👤 Paciente:</span>
-                            <span class="name"
-                                th:text="${turno.paciente?.nombre + ' ' + turno.paciente?.apellido}">María García</span>
-                        </div>
+                    <div class="actions" sec:authorize="hasRole('ADMIN')">
+                        <a th:href="@{/calendario}" class="btn btn-secondary">
+                            <svg class="icon"><use href="/images/icons.svg#calendar-days"></use></svg> Calendario
+                        </a>
+                        <a th:href="@{/turnos/nuevo}" class="btn btn-primary">
+                            <svg class="icon"><use href="/images/icons.svg#plus"></use></svg> Nuevo turno
+                        </a>
                     </div>
                 </div>
 
-                <div class="card-actions" sec:authorize="hasRole('ADMIN')">
-                    <a th:href="@{'/turnos/editar/' + ${turno.id}}" class="btn btn-edit">✏️ Editar</a>
-                    <a href="#" class="btn btn-delete"
-                        th:onclick="'mostrarConfirmacionEliminacion(' + ${turno.id} + ')'">🗑️ Eliminar</a>
+                <div th:if="${param.cancelado}" class="alert alert-success" role="status">
+                    <svg class="icon"><use href="/images/icons.svg#check"></use></svg>
+                    <div class="alert-body"><strong>Turno cancelado.</strong> Se sumó al contador de cancelaciones del mes.</div>
+                    <button type="button" class="alert-close" data-dismiss aria-label="Cerrar"><svg class="icon icon-sm"><use href="/images/icons.svg#x"></use></svg></button>
                 </div>
-            </div>
-        </div>
+                <div th:if="${param.correo != null and param.correo[0] == 'enviado'}" class="alert alert-success" role="status">
+                    <svg class="icon"><use href="/images/icons.svg#mail"></use></svg>
+                    <div class="alert-body"><strong>Turno agendado.</strong> Se envió la confirmación por correo al paciente.</div>
+                    <button type="button" class="alert-close" data-dismiss aria-label="Cerrar"><svg class="icon icon-sm"><use href="/images/icons.svg#x"></use></svg></button>
+                </div>
+                <div th:if="${param.correo != null and param.correo[0] == 'pendiente'}" class="alert alert-warning" role="status">
+                    <svg class="icon"><use href="/images/icons.svg#alert"></use></svg>
+                    <div class="alert-body">
+                        <strong>Turno agendado, pero no se envió el correo.</strong>
+                        <span th:text="${correoError != null} ? ${correoError} : 'Verificá el email del paciente y la configuración SMTP.'"></span>
+                    </div>
+                    <button type="button" class="alert-close" data-dismiss aria-label="Cerrar"><svg class="icon icon-sm"><use href="/images/icons.svg#x"></use></svg></button>
+                </div>
 
-        <div th:if="${#lists.isEmpty(turnos)}" class="empty-message">
-            <p>📅 No hay turnos registrados</p>
-            <a href="/turnos/nuevo" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">Crear primer turno</a>
-        </div>
-    </div>
-    </div>
+                <section class="card" th:if="${not #lists.isEmpty(turnos)}">
+                    <div class="toolbar">
+                        <label class="search">
+                            <span class="sr-only">Buscar turno</span>
+                            <svg class="icon"><use href="/images/icons.svg#search"></use></svg>
+                            <input type="search" class="input" data-filter="tabla-turnos"
+                                placeholder="Buscar por paciente, médico o fecha">
+                        </label>
+                        <div class="seg" data-seg-for="tabla-turnos" role="group" aria-label="Período">
+                            <button type="button" class="active" data-value="proximo">Próximos</button>
+                            <button type="button" data-value="pasado">Pasados</button>
+                            <button type="button" data-value="all">Todos</button>
+                        </div>
+                        <span class="toolbar-count" data-count-for="tabla-turnos"></span>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table" id="tabla-turnos" data-group="proximo">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Paciente</th>
+                                    <th class="hide-sm">Médico</th>
+                                    <th class="hide-sm">Estado</th>
+                                    <th class="col-actions" sec:authorize="hasRole('ADMIN')"><span class="sr-only">Acciones</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="turno : ${turnos}"
+                                    th:data-fecha="${turno.anio + '-' + #numbers.formatInteger(turno.mes, 2) + '-' + #numbers.formatInteger(turno.dia, 2)}"
+                                    th:data-hora="${turno.hora}">
+                                    <td class="nowrap">
+                                        <div class="person-name mono">
+                                            <span th:text="${#numbers.formatInteger(turno.dia, 2) + '/' + #numbers.formatInteger(turno.mes, 2) + '/' + turno.anio}">15/10/2025</span>
+                                            · <span th:text="${turno.hora}">10:30</span>
+                                        </div>
+                                        <div class="person-sub js-dia">&nbsp;</div>
+                                    </td>
+                                    <td>
+                                        <div class="person-name" th:text="${turno.paciente?.nombre + ' ' + turno.paciente?.apellido}">María García</div>
+                                        <div class="person-sub" th:text="'DNI ' + ${turno.paciente?.dni}">DNI</div>
+                                    </td>
+                                    <td class="hide-sm">
+                                        <div th:text="${turno.medico?.nombre + ' ' + turno.medico?.apellido}">Juan Pérez</div>
+                                        <div class="person-sub" th:text="${turno.medico?.especialidad}">Cardiología</div>
+                                    </td>
+                                    <td class="hide-sm js-estado"></td>
+                                    <td class="col-actions" sec:authorize="hasRole('ADMIN')">
+                                        <div class="row-actions">
+                                            <a th:href="@{'/turnos/editar/' + ${turno.id}}" class="icon-btn" title="Editar" aria-label="Editar">
+                                                <svg class="icon"><use href="/images/icons.svg#pencil"></use></svg>
+                                            </a>
+                                            <a th:href="@{'/turnos/eliminar/' + ${turno.id}}" class="icon-btn danger"
+                                                title="Cancelar turno" aria-label="Cancelar turno"
+                                                data-confirm-title="¿Cancelar este turno?"
+                                                th:data-confirm="'El turno de ' + ${turno.paciente?.nombre} + ' ' + ${turno.paciente?.apellido} + ' quedará cancelado y se sumará al contador de cancelaciones del mes. Esta acción no se puede deshacer.'"
+                                                data-confirm-ok="Cancelar turno">
+                                                <svg class="icon"><use href="/images/icons.svg#x-circle"></use></svg>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="no-results" style="display:none">
+                                    <td colspan="5">No hay turnos para mostrar con este filtro.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
-    <!-- Modal de confirmación de eliminación -->
-    <div id="modalConfirmacion" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>⚠️ Confirmar Eliminación</h3>
+                <section class="card empty" th:if="${#lists.isEmpty(turnos)}">
+                    <span class="empty-icon"><svg class="icon icon-lg"><use href="/images/icons.svg#calendar"></use></svg></span>
+                    <h3>No hay turnos registrados</h3>
+                    <p>Agendá el primer turno eligiendo médico, paciente, fecha y horario.</p>
+                    <a th:href="@{/turnos/nuevo}" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">
+                        <svg class="icon"><use href="/images/icons.svg#plus"></use></svg> Nuevo turno
+                    </a>
+                </section>
             </div>
-            <div class="modal-body">
-                <p><strong>¿Estás seguro de eliminar este turno?</strong></p>
-                <p class="warning-text">Si lo eliminas, el turno será contabilizado en el contador de <strong>turnos
-                        cancelados del mes</strong>.</p>
-                <p class="note-text">Esta acción no se puede deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal()">❌ Cancelar</button>
-                <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">🗑️ Eliminar
-                    Turno</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de confirmación para eliminar turno -->
-    <div id="modalConfirmacion" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>⚠️ Confirmar Cancelación de Turno</h3>
-            </div>
-            <div class="modal-body">
-                <p class="warning-text">¿Está seguro que desea cancelar este turno?</p>
-                <p>Esta acción no se puede deshacer.</p>
-                <p class="note-text">El turno será marcado como cancelado en el sistema.</p>
-            </div>
-            <div class="modal-footer">
-                <button onclick="confirmarEliminacion()" class="btn btn-danger">Sí, Cancelar Turno</button>
-                <button onclick="cerrarModal()" class="btn btn-secondary">No, Mantener Turno</button>
-            </div>
-        </div>
+        </main>
     </div>
 
     <script>
-        let turnoIdAEliminar = null;
+        // Clasifica y ordena: próximos (más cercano primero) y pasados (más reciente primero)
+        (function () {
+            const tbody = document.querySelector('#tabla-turnos tbody');
+            if (!tbody) return;
+            const hoyLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            const filas = Array.from(tbody.querySelectorAll('tr[data-fecha]'));
+            const clave = f => f.dataset.fecha + ' ' + f.dataset.hora.padStart(5, '0');
 
-        function mostrarConfirmacionEliminacion(turnoId) {
-            turnoIdAEliminar = turnoId;
-            document.getElementById('modalConfirmacion').style.display = 'flex';
-
-            // Prevenir scroll del body
-            document.body.style.overflow = 'hidden';
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalConfirmacion').style.display = 'none';
-            turnoIdAEliminar = null;
-
-            // Restaurar scroll del body
-            document.body.style.overflow = 'auto';
-        }
-
-        function confirmarEliminacion() {
-            if (turnoIdAEliminar) {
-                // Redirigir al endpoint de eliminación
-                window.location.href = `/turnos/eliminar/${turnoIdAEliminar}`;
-            }
-        }
-
-        // Cerrar modal al hacer clic fuera de él
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('modalConfirmacion');
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) {
-                    cerrarModal();
-                }
+            filas.forEach(function (f) {
+                const fecha = f.dataset.fecha;
+                const futuro = fecha >= hoyLocal;
+                f.dataset.group = futuro ? 'proximo' : 'pasado';
+                const d = new Date(fecha + 'T00:00');
+                f.querySelector('.js-dia').textContent = d.toLocaleDateString('es-AR', { weekday: 'long' });
+                const estado = f.querySelector('.js-estado');
+                if (fecha === hoyLocal) estado.innerHTML = '<span class="badge badge-warning badge-dot">Hoy</span>';
+                else if (futuro) estado.innerHTML = '<span class="badge badge-primary badge-dot">Programado</span>';
+                else estado.innerHTML = '<span class="badge">Finalizado</span>';
             });
 
-        });
+            const proximos = filas.filter(f => f.dataset.group === 'proximo').sort((a, b) => clave(a).localeCompare(clave(b)));
+            const pasados = filas.filter(f => f.dataset.group === 'pasado').sort((a, b) => clave(b).localeCompare(clave(a)));
+            const vacio = tbody.querySelector('.no-results');
+            proximos.concat(pasados).forEach(f => tbody.insertBefore(f, vacio));
+        })();
     </script>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 
 </html>

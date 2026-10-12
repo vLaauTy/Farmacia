@@ -1,6 +1,15 @@
 package Farmacia.Farmacia.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.time.DateTimeException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -9,62 +18,50 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.Duration;
-import java.time.LocalTime;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
-
-import Farmacia.Farmacia.Model.Turnos;
 import Farmacia.Farmacia.Model.Medico;
 import Farmacia.Farmacia.Model.Paciente;
-import Farmacia.Farmacia.Service.TurnosService;
+import Farmacia.Farmacia.Model.Turnos;
 import Farmacia.Farmacia.Service.MedicoService;
 import Farmacia.Farmacia.Service.PacienteService;
 import Farmacia.Farmacia.Service.TurnoEmailService;
+import Farmacia.Farmacia.Service.TurnosService;
 
 @Controller
-@RequestMapping
 public class TurnosController {
 
-    @Autowired
-    private TurnosService turnosService;
+    // Datos mínimos de un turno ocupado que usa el formulario para marcar horarios no disponibles
+    public record TurnoOcupado(Long id, Long medicoId, Long pacienteId, Integer dia, Integer mes, Integer anio,
+            String hora) {
 
-    @Autowired
-    private MedicoService medicoService;
-
-    @Autowired
-    private PacienteService pacienteService;
-
-    @Autowired
-    private TurnoEmailService turnoEmailService;
-
-    @GetMapping("/turnos/gestion")
-    public String gestionTurnos(Authentication authentication) {
-        // Verificar que el usuario sea administrador
-        if (authentication == null || !authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            return "redirect:/login?error=access_denied";
+        static TurnoOcupado de(Turnos turno) {
+            return new TurnoOcupado(turno.getId(),
+                    turno.getMedico() != null ? turno.getMedico().getId() : null,
+                    turno.getPaciente() != null ? turno.getPaciente().getId() : null,
+                    turno.getDia(), turno.getMes(), turno.getAnio(), turno.getHora());
         }
-        return "gestion_turnos";
     }
 
-    @GetMapping("/turnos")
-    public String listarTurnos(Model model, Authentication authentication) {
-        // Verificar que el usuario sea administrador
-        if (authentication == null || !authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            return "redirect:/login?error=access_denied";
-        }
+    private final TurnosService turnosService;
+    private final MedicoService medicoService;
+    private final PacienteService pacienteService;
+    private final TurnoEmailService turnoEmailService;
 
-        // Obtener turnos activos y contar cancelados del mes
+    public TurnosController(TurnosService turnosService, MedicoService medicoService,
+            PacienteService pacienteService, TurnoEmailService turnoEmailService) {
+        this.turnosService = turnosService;
+        this.medicoService = medicoService;
+        this.pacienteService = pacienteService;
+        this.turnoEmailService = turnoEmailService;
+    }
+
+    // ---------- Listado y formulario (solo ADMIN, ver UserConfig) ----------
+
+    @GetMapping("/turnos")
+    public String listarTurnos(Model model) {
         model.addAttribute("turnos", turnosService.obtenerTurnosActivos());
         model.addAttribute("turnosCanceladosDelMes", turnosService.obtenerTurnosCanceladosDelMes());
         model.addAttribute("nombreMes", turnosService.obtenerNombreDelMes());
@@ -72,344 +69,173 @@ public class TurnosController {
     }
 
     @GetMapping("/turnos/nuevo")
-    public String mostrarFormularioTurno(Model model, @RequestParam(required = false) Long medicoId) {
-        model.addAttribute("turno", new Turnos());
-        model.addAttribute("medicos", medicoService.getAllMedicos());
-        model.addAttribute("pacientes", pacienteService.getAllPacientes());
-
-        // Si se seleccionó un médico, cargar sus horarios
-        if (medicoId != null) {
-            Medico medicoSeleccionado = medicoService.getMedicoById(medicoId);
-            if (medicoSeleccionado != null) {
-                model.addAttribute("medicoSeleccionado", medicoSeleccionado);
-                model.addAttribute("horariosDisponibles", generarHorariosPorTipo(medicoSeleccionado.getHorario()));
-            }
-        }
-
-        return "formulario_turno";
+    public String nuevoTurno(Model model) {
+        return mostrarFormulario(model, new Turnos(), null);
     }
 
     @PostMapping("/turnos/guardar")
     public String guardarTurno(@ModelAttribute Turnos turno,
             @RequestParam(name = "medico", required = false) Long medicoId,
             @RequestParam(name = "paciente", required = false) Long pacienteId,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-        try {
-            // Validar fecha (debe ser al menos mañana - al menos 1 día de anticipación)
-            LocalDate hoy = LocalDate.now();
-            LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
-
-            if (!fechaTurno.isAfter(hoy)) {
-                model.addAttribute("error",
-                        "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: "
-                                + hoy.plusDays(1));
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            // Validar que se haya seleccionado un médico
-            if (medicoId == null) {
-                model.addAttribute("error", "Debe seleccionar un médico");
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            // Validar que se haya seleccionado un paciente
-            if (pacienteId == null) {
-                model.addAttribute("error", "Debe seleccionar un paciente");
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            // Buscar y validar que el médico existe
-            Medico medico = medicoService.getMedicoById(medicoId);
-            if (medico == null) {
-                model.addAttribute("error", "El médico seleccionado no existe");
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            // Buscar y validar que el paciente existe
-            Paciente paciente = pacienteService.getPacienteById(pacienteId);
-            if (paciente == null) {
-                model.addAttribute("error", "El paciente seleccionado no existe");
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            // Establecer el médico y paciente en el turno
-            turno.setMedico(medico);
-            turno.setPaciente(paciente);
-
-            // Verificar que el paciente no tenga otro turno en la misma fecha y hora
-            if (turnosService.existeTurnoPaciente(pacienteId, turno.getDia(), turno.getMes(),
-                    turno.getAnio(), turno.getHora())) {
-                model.addAttribute("error", "El paciente ya tiene un turno programado para esta fecha y hora");
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            turnosService.guardarTurno(turno);
-            var errorCorreo = turnoEmailService.enviarConfirmacion(turno);
-            if (errorCorreo.isPresent()) {
-                redirectAttributes.addFlashAttribute("correoError", errorCorreo.get());
-                return "redirect:/turnos?correo=pendiente";
-            }
-            return "redirect:/turnos?correo=enviado";
-        } catch (Exception e) {
-            model.addAttribute("error", "Error al guardar el turno: " + e.getMessage());
-            model.addAttribute("turno", turno);
-            model.addAttribute("medicos", medicoService.getAllMedicos());
-            model.addAttribute("pacientes", pacienteService.getAllPacientes());
-            return "formulario_turno";
+            Model model, RedirectAttributes redirectAttributes) {
+        String error = completarYValidar(turno, medicoId, pacienteId);
+        if (error != null) {
+            return mostrarFormulario(model, turno, error);
         }
+
+        turnosService.guardarTurno(turno);
+        Optional<String> errorCorreo = turnoEmailService.enviarConfirmacion(turno);
+        if (errorCorreo.isPresent()) {
+            redirectAttributes.addFlashAttribute("correoError", errorCorreo.get());
+            return "redirect:/turnos?correo=pendiente";
+        }
+        return "redirect:/turnos?correo=enviado";
     }
 
     @GetMapping("/turnos/editar/{id}")
     public String editarTurno(@PathVariable Long id, Model model) {
-        var turno = turnosService.obtenerPorId(id);
-        if (turno.isPresent()) {
-            Turnos turnoObj = turno.get();
-            model.addAttribute("turno", turnoObj);
-            model.addAttribute("medicos", medicoService.getAllMedicos());
-            model.addAttribute("pacientes", pacienteService.getAllPacientes());
-
-            // Si el turno ya tiene un médico asignado, mostrar sus horarios
-            if (turnoObj.getMedico() != null) {
-                model.addAttribute("medicoSeleccionado", turnoObj.getMedico());
-                model.addAttribute("horariosDisponibles", generarHorariosPorTipo(turnoObj.getMedico().getHorario()));
-            }
-
-            return "formulario_turno";
-        }
-        return "redirect:/turnos";
+        return turnosService.obtenerPorId(id)
+                .map(turno -> mostrarFormulario(model, turno, null))
+                .orElse("redirect:/turnos");
     }
 
     @PostMapping("/turnos/editar/{id}")
-    public String actualizarTurno(@PathVariable Long id,
-            @ModelAttribute Turnos turno,
+    public String actualizarTurno(@PathVariable Long id, @ModelAttribute Turnos turno,
             @RequestParam(name = "medico", required = false) Long medicoId,
             @RequestParam(name = "paciente", required = false) Long pacienteId,
             Model model) {
-        try {
-            turno.setId(id);
-
-            // Validar fecha (debe ser al menos mañana - al menos 1 día de anticipación)
-            LocalDate hoy = LocalDate.now();
-            LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
-
-            if (!fechaTurno.isAfter(hoy)) {
-                model.addAttribute("error",
-                        "Los turnos deben programarse con al menos un día de anticipación. Fecha mínima: "
-                                + hoy.plusDays(1));
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            // Establecer el médico desde el ID
-            if (medicoId != null) {
-                Medico medico = medicoService.getMedicoById(medicoId);
-                turno.setMedico(medico);
-            }
-
-            // Establecer el paciente desde el ID
-            if (pacienteId != null) {
-                Paciente paciente = pacienteService.getPacienteById(pacienteId);
-                turno.setPaciente(paciente);
-            }
-
-            // Verificar que el paciente no tenga otro turno en la misma fecha y hora
-            // (excluyendo el turno actual)
-            if (pacienteId != null && turnosService.existeTurnoPacienteExcluyendoId(pacienteId, turno.getDia(),
-                    turno.getMes(), turno.getAnio(), turno.getHora(), id)) {
-                model.addAttribute("error", "El paciente ya tiene un turno programado para esta fecha y hora");
-                model.addAttribute("turno", turno);
-                model.addAttribute("medicos", medicoService.getAllMedicos());
-                model.addAttribute("pacientes", pacienteService.getAllPacientes());
-                return "formulario_turno";
-            }
-
-            turnosService.guardarTurno(turno);
-            return "redirect:/turnos";
-        } catch (Exception e) {
-            model.addAttribute("error", "Error al actualizar el turno: " + e.getMessage());
-            model.addAttribute("turno", turno);
-            model.addAttribute("medicos", medicoService.getAllMedicos());
-            model.addAttribute("pacientes", pacienteService.getAllPacientes());
-            return "formulario_turno";
+        turno.setId(id);
+        String error = completarYValidar(turno, medicoId, pacienteId);
+        if (error != null) {
+            return mostrarFormulario(model, turno, error);
         }
+
+        turnosService.guardarTurno(turno);
+        return "redirect:/turnos";
     }
 
     @GetMapping("/turnos/eliminar/{id}")
-    public String eliminarTurno(@PathVariable Long id) {
+    public String cancelarTurno(@PathVariable Long id) {
         turnosService.cancelarTurno(id);
         return "redirect:/turnos?cancelado=true";
     }
 
+    // ---------- Datos para el formulario (JSON) ----------
+
     @GetMapping("/turnos/horarios/{medicoId}")
     @ResponseBody
     public ResponseEntity<List<String>> obtenerHorarios(@PathVariable Long medicoId) {
-        try {
-            Medico medico = medicoService.getMedicoById(medicoId);
-
-            List<String> horarios = generarHorariosPorTipo(medico.getHorario());
-            return ResponseEntity.ok(horarios);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        Medico medico = medicoService.getMedicoById(medicoId);
+        if (medico == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(turnosService.horariosDelMedico(medico));
     }
 
-    // Endpoint para obtener turnos ocupados - usado por JavaScript para filtrar
     @GetMapping("/turnos/ocupados")
     @ResponseBody
-    public ResponseEntity<List<Turnos>> obtenerTurnosOcupados() {
-        try {
-            return ResponseEntity.ok(turnosService.obtenerTurnos());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    // Endpoint para que los médicos vean sus turnos asignados
-    @GetMapping("/mis-turnos")
-    public String misTurnos(Model model, Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-
-            // Verificar si el usuario tiene rol de médico
-            boolean esMedico = authentication.getAuthorities().stream()
-                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_MEDICO"));
-
-            if (esMedico) {
-                // Obtener el médico por su username
-                Medico medico = medicoService.getMedicoByUsername(username);
-                if (medico != null) {
-                    // Obtener los turnos del médico
-                    List<Turnos> turnos = turnosService.obtenerTurnosPorMedico(medico.getId());
-
-                    // Calcular estadísticas semanales
-                    LocalDate hoy = LocalDate.now();
-
-                    // Calcular inicio y fin de la semana actual (lunes a domingo)
-                    LocalDate inicioSemanaActual = hoy.with(java.time.DayOfWeek.MONDAY);
-                    LocalDate finSemanaActual = hoy.with(java.time.DayOfWeek.SUNDAY);
-
-                    // Calcular inicio y fin de la semana anterior
-                    LocalDate inicioSemanaAnterior = inicioSemanaActual.minusWeeks(1);
-                    LocalDate finSemanaAnterior = finSemanaActual.minusWeeks(1);
-
-                    // Contar turnos de la semana anterior
-                    long turnosSemanaAnterior = turnos.stream()
-                            .filter(turno -> {
-                                LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
-                                return !fechaTurno.isBefore(inicioSemanaAnterior)
-                                        && !fechaTurno.isAfter(finSemanaAnterior);
-                            })
-                            .count();
-
-                    // Contar turnos de la semana actual
-                    long turnosSemanaActual = turnos.stream()
-                            .filter(turno -> {
-                                LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
-                                return !fechaTurno.isBefore(inicioSemanaActual) && !fechaTurno.isAfter(finSemanaActual);
-                            })
-                            .count();
-
-                    // Contar turnos restantes de la semana (desde hoy hasta domingo)
-                    long turnosRestantesSemana = turnos.stream()
-                            .filter(turno -> {
-                                LocalDate fechaTurno = LocalDate.of(turno.getAnio(), turno.getMes(), turno.getDia());
-                                return !fechaTurno.isBefore(hoy) && !fechaTurno.isAfter(finSemanaActual);
-                            })
-                            .count();
-
-                    model.addAttribute("turnos", turnos);
-                    model.addAttribute("medico", medico);
-                    model.addAttribute("turnosSemanaAnterior", turnosSemanaAnterior);
-                    model.addAttribute("turnosSemanaActual", turnosSemanaActual);
-                    model.addAttribute("turnosRestantesSemana", turnosRestantesSemana);
-                    return "mis_turnos_medico";
-                }
-            }
-
-            // Si no es médico o no se encuentra, redirigir al menú correspondiente
-            return "redirect:/menu";
-        }
-
-        return "redirect:/login";
-    }
-
-    // Endpoint para mostrar calendario semanal de turnos (solo para ADMIN)
-    @GetMapping("/calendario")
-    public String mostrarCalendario(Model model, Authentication authentication) {
-        // Verificar que el usuario sea administrador
-        if (authentication == null || !authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            return "redirect:/login?error=access_denied";
-        }
-
-        LocalDate hoy = LocalDate.now();
-
-        // Generar los próximos 8 días empezando desde hoy
-        List<LocalDate> diasSemana = Stream.iterate(hoy, fecha -> fecha.plusDays(1))
-                .limit(8)
-                .collect(Collectors.toList());
-
-        // Generar horarios cada 30 minutos de 8:00 a 20:00
-        List<String> horarios = generarHorarios(LocalTime.of(8, 0), LocalTime.of(20, 0));
-
-        // Obtener todos los turnos de estos 8 días
-        List<Turnos> turnosSemanales = turnosService.obtenerTurnosEntreFechas(hoy, hoy.plusDays(8));
-
-        // Crear un mapa para búsqueda rápida de turnos (permitir múltiples turnos por
-        // horario)
-        java.util.Map<String, java.util.List<String>> calendarioTurnos = new java.util.HashMap<>();
-        for (Turnos turno : turnosSemanales) {
-            String clave = turno.getDia() + "-" + turno.getMes() + "-" + turno.getAnio() + "-" + turno.getHora();
-            String valor = "Dr. " + turno.getMedico().getApellido() + "|" +
-                    turno.getMedico().getNombre() + " " + turno.getMedico().getApellido() + "|" +
-                    turno.getPaciente().getNombre() + " " + turno.getPaciente().getApellido();
-
-            // Si la clave ya existe, agregar a la lista; si no, crear nueva lista
-            calendarioTurnos.computeIfAbsent(clave, k -> new java.util.ArrayList<>()).add(valor);
-        }
-
-        model.addAttribute("diasSemana", diasSemana);
-        model.addAttribute("horarios", horarios);
-        model.addAttribute("turnos", turnosSemanales);
-        model.addAttribute("calendarioTurnos", calendarioTurnos);
-
-        return "calendario_turnos";
-    } // Métodos auxiliares para generar horarios
-
-    private List<String> generarHorarios(LocalTime inicio, LocalTime fin) {
-        return Stream.iterate(inicio, time -> time.isBefore(fin), time -> time.plus(Duration.ofMinutes(30)))
-                .map(time -> time.format(DateTimeFormatter.ofPattern("HH:mm")))
+    public List<TurnoOcupado> obtenerTurnosOcupados() {
+        return turnosService.obtenerTurnosActivos().stream()
+                .map(TurnoOcupado::de)
                 .toList();
     }
 
-    private List<String> generarHorariosPorTipo(String horario) {
-        return switch (horario) {
-            case "Mañana (8:00 - 14:00)" -> generarHorarios(LocalTime.of(8, 0), LocalTime.of(14, 0));
-            case "Tarde (14:00 - 20:00)" -> generarHorarios(LocalTime.of(14, 0), LocalTime.of(20, 0));
-            case "Tiempo Completo (8:00 - 20:00)" -> generarHorarios(LocalTime.of(8, 0), LocalTime.of(20, 0));
-            default -> List.of();
-        };
+    // ---------- Vistas de agenda ----------
+
+    // Agenda del médico que inició sesión (solo MEDICO, ver UserConfig)
+    @GetMapping("/mis-turnos")
+    public String misTurnos(Model model, Authentication authentication) {
+        Medico medico = medicoService.getMedicoByUsername(authentication.getName());
+        if (medico == null) {
+            return "redirect:/";
+        }
+
+        List<Turnos> turnos = turnosService.obtenerTurnosPorMedico(medico.getId());
+        LocalDate hoy = LocalDate.now();
+        LocalDate lunes = hoy.with(DayOfWeek.MONDAY);
+        LocalDate domingo = hoy.with(DayOfWeek.SUNDAY);
+
+        model.addAttribute("medico", medico);
+        model.addAttribute("turnos", turnos);
+        model.addAttribute("turnosSemanaAnterior", contarEntre(turnos, lunes.minusWeeks(1), domingo.minusWeeks(1)));
+        model.addAttribute("turnosSemanaActual", contarEntre(turnos, lunes, domingo));
+        model.addAttribute("turnosRestantesSemana", contarEntre(turnos, hoy, domingo));
+        return "mis_turnos_medico";
     }
 
+    // Grilla de los próximos 8 días (solo ADMIN, ver UserConfig)
+    @GetMapping("/calendario")
+    public String mostrarCalendario(Model model) {
+        LocalDate hoy = LocalDate.now();
+        LocalDate ultimoDia = hoy.plusDays(7);
+        List<Turnos> turnos = turnosService.obtenerTurnosEntreFechas(hoy, ultimoDia);
+
+        // Clave "aaaa-mm-dd HH:mm" -> turnos de ese día y horario
+        Map<String, List<Turnos>> calendarioTurnos = new HashMap<>();
+        for (Turnos turno : turnos) {
+            String clave = turno.getFecha() + " " + turno.getHora();
+            calendarioTurnos.computeIfAbsent(clave, k -> new ArrayList<>()).add(turno);
+        }
+
+        model.addAttribute("diasSemana", hoy.datesUntil(ultimoDia.plusDays(1)).toList());
+        model.addAttribute("horarios", turnosService.generarHorarios(LocalTime.of(8, 0), LocalTime.of(20, 0)));
+        model.addAttribute("turnos", turnos);
+        model.addAttribute("calendarioTurnos", calendarioTurnos);
+        return "calendario_turnos";
+    }
+
+    // ---------- Auxiliares ----------
+
+    private String mostrarFormulario(Model model, Turnos turno, String error) {
+        model.addAttribute("turno", turno);
+        model.addAttribute("medicos", medicoService.getAllMedicos());
+        model.addAttribute("pacientes", pacienteService.getAllPacientes());
+        model.addAttribute("error", error);
+        return "formulario_turno";
+    }
+
+    // Asigna médico y paciente al turno y devuelve el mensaje de error, o null si es válido
+    private String completarYValidar(Turnos turno, Long medicoId, Long pacienteId) {
+        Medico medico = medicoId != null ? medicoService.getMedicoById(medicoId) : null;
+        Paciente paciente = pacienteId != null ? pacienteService.getPacienteById(pacienteId) : null;
+        turno.setMedico(medico);
+        turno.setPaciente(paciente);
+
+        if (medico == null) {
+            return "Seleccioná un médico.";
+        }
+        if (paciente == null) {
+            return "Seleccioná un paciente.";
+        }
+        if (turno.getHora() == null || turno.getHora().isBlank()) {
+            return "Seleccioná un horario.";
+        }
+
+        LocalDate fecha;
+        try {
+            fecha = turno.getFecha();
+        } catch (DateTimeException e) {
+            fecha = null; // por ejemplo, 31 de febrero
+        }
+        if (fecha == null) {
+            return "La fecha del turno no es válida.";
+        }
+        if (!fecha.isAfter(LocalDate.now())) {
+            return "Los turnos deben programarse con al menos un día de anticipación.";
+        }
+        if (turnosService.medicoOcupado(medico.getId(), fecha, turno.getHora(), turno.getId())) {
+            return "El médico ya tiene un turno en esa fecha y horario.";
+        }
+        if (turnosService.pacienteOcupado(paciente.getId(), fecha, turno.getHora(), turno.getId())) {
+            return "El paciente ya tiene un turno programado para esta fecha y hora.";
+        }
+        return null;
+    }
+
+    private static long contarEntre(List<Turnos> turnos, LocalDate desde, LocalDate hasta) {
+        return turnos.stream()
+                .map(Turnos::getFecha)
+                .filter(fecha -> !fecha.isBefore(desde) && !fecha.isAfter(hasta))
+                .count();
+    }
 }

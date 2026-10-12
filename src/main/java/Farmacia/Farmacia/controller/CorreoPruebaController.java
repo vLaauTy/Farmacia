@@ -4,11 +4,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import Farmacia.Farmacia.Service.TurnoEmailService;
 
+// Envía un correo de prueba para verificar la configuración SMTP (solo ADMIN)
 @Controller
+@RequestMapping("/correo-prueba")
 public class CorreoPruebaController {
 
     private final TurnoEmailService turnoEmailService;
@@ -17,12 +20,12 @@ public class CorreoPruebaController {
         this.turnoEmailService = turnoEmailService;
     }
 
-    @GetMapping("/correo-prueba")
+    @GetMapping
     public String mostrarFormulario() {
         return "correo_prueba";
     }
 
-    @PostMapping("/correo-prueba")
+    @PostMapping
     public String enviarCorreo(@RequestParam String destinatario, Model model) {
         String email = destinatario.trim();
         model.addAttribute("destinatario", email);

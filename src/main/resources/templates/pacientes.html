@@ -1,94 +1,134 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Pacientes - SaludSync</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-</head>
+<head th:replace="~{fragments/layout :: head('Pacientes')}"></head>
 
-<body class="theme-pacientes">
-    <nav class="navbar">
-        <div class="navbar-left">
-            <h1>🏥 SaludSync</h1>
-        </div>
-        <ul>
-            <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
-            <li><a href="/">🏡 Inicio</a></li>
-            <!-- Enlaces para administradores -->
-            <li sec:authorize="hasRole('ADMIN')"><a href="/medicos">👨‍⚕️ Médicos</a></li>
-            <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
-            <li sec:authorize="hasRole('ADMIN')"><a href="/turnos">📅 Turnos</a></li>
-            <!-- Enlaces adicionales para médicos -->
-            <li sec:authorize="hasRole('MEDICO')"><a href="/mis-turnos">📅 Mis Turnos</a></li>
-            <li sec:authorize="hasRole('ADMIN')"><a href="/calendario">📅 Ver Calendario</a></li>
-            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
-        </ul>
-    </nav>
+<body>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('pacientes')}"></th:block>
 
-    <div class="container">
-        <div class="page-header">
-            <h2>👨‍⚕️ Gestión de Pacientes</h2>
-            <a href="/pacientes/nuevo" class="btn btn-primary">➕ Nuevo Paciente</a>
-        </div>
-
-        <div th:if="${param.error}" class="alert alert-danger">
-            ❌ Error en la operación. Inténtelo nuevamente.
-        </div>
-
-        <!-- Grid de pacientes -->
-        <div th:if="${pacientes != null and #lists.size(pacientes) > 0}" class="pacientes-grid">
-            <div th:each="paciente : ${pacientes}" class="paciente-card">
-                <div class="card-header">
-                    <div class="paciente-info">
-                        <h3 th:text="${paciente.nombre + ' ' + paciente.apellido}">Juan Pérez</h3>
-                        <span class="dni" th:text="'DNI: ' + ${paciente.dni}">DNI: 12345678</span>
+        <main class="main">
+            <div class="content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Pacientes</h1>
+                        <p class="page-subtitle" sec:authorize="hasRole('ADMIN')">Datos personales, contacto y cobertura médica.</p>
+                        <p class="page-subtitle" sec:authorize="hasRole('MEDICO')">Consultá los datos de contacto y actualizá el historial clínico.</p>
                     </div>
-                    <div class="paciente-status">
-                        <span class="status-badge">👤 PACIENTE</span>
-                    </div>
+                    <a th:href="@{/pacientes/nuevo}" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">
+                        <svg class="icon"><use href="/images/icons.svg#plus"></use></svg> Nuevo paciente
+                    </a>
                 </div>
 
-                <div class="card-body">
-                    <div class="info-row">
-                        <span class="label">📞 Teléfono:</span>
-                        <span th:text="${paciente.telefono}">11-1234-5678</span>
+                <div th:if="${param.exito}" class="alert alert-success" role="status">
+                    <svg class="icon"><use href="/images/icons.svg#check"></use></svg>
+                    <div class="alert-body" th:switch="${param.exito[0]}">
+                        <span th:case="'paciente_actualizado'">Los datos del paciente se guardaron correctamente.</span>
+                        <span th:case="'paciente_eliminado'">El paciente fue eliminado.</span>
+                        <span th:case="*">El paciente se registró correctamente.</span>
                     </div>
-                    <div class="info-row">
-                        <span class="label">🏠 Domicilio:</span>
-                        <span th:text="${paciente.domicilio}">Av. Corrientes 1234</span>
+                    <button type="button" class="alert-close" data-dismiss aria-label="Cerrar"><svg class="icon icon-sm"><use href="/images/icons.svg#x"></use></svg></button>
+                </div>
+                <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                    <svg class="icon"><use href="/images/icons.svg#alert"></use></svg>
+                    <div class="alert-body"
+                        th:text="${param.error[0] == 'no_se_puede_eliminar'} ? 'No se pudo eliminar el paciente. Verificá que no tenga turnos asignados.' : 'Ocurrió un error en la operación. Intentá nuevamente.'">
                     </div>
-                    <div class="info-row" th:if="${paciente.obraSocial}">
-                        <span class="label">🏥 Obra Social:</span>
-                        <span th:text="${paciente.nombreObraSocial}">OSDE</span>
-                    </div>
-                    <div class="info-row" th:if="${!paciente.obraSocial}">
-                        <span class="label">💳 Obra Social:</span>
-                        <span class="no-obra-social">Sin obra social</span>
-                    </div>
+                    <button type="button" class="alert-close" data-dismiss aria-label="Cerrar"><svg class="icon icon-sm"><use href="/images/icons.svg#x"></use></svg></button>
                 </div>
 
-                <div class="card-actions">
-                    <a th:href="@{/pacientes/editar/{id}(id=${paciente.id})}" class="btn btn-warning">✏️ Editar / Ver
-                        datos</a>
-                    <form th:action="@{/pacientes/eliminar/{id}(id=${paciente.id})}" method="post"
-                        style="display:inline;">
-                        <button type="submit" class="btn btn-eliminar" sec:authorize="hasRole('ADMIN')"
-                            onclick="return confirm('¿Está seguro de eliminar este paciente?')">🗑️ Eliminar</button>
-                    </form>
-                </div>
+                <section class="card" th:if="${not #lists.isEmpty(pacientes)}">
+                    <div class="toolbar">
+                        <label class="search">
+                            <span class="sr-only">Buscar paciente</span>
+                            <svg class="icon"><use href="/images/icons.svg#search"></use></svg>
+                            <input type="search" class="input" data-filter="tabla-pacientes"
+                                placeholder="Buscar por nombre, DNI u obra social">
+                        </label>
+                        <div class="seg" data-seg-for="tabla-pacientes" role="group" aria-label="Cobertura">
+                            <button type="button" class="active" data-value="all">Todos</button>
+                            <button type="button" data-value="con-os">Con obra social</button>
+                            <button type="button" data-value="particular">Particular</button>
+                        </div>
+                        <span class="toolbar-count" data-count-for="tabla-pacientes"></span>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table" id="tabla-pacientes">
+                            <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th class="hide-sm">Contacto</th>
+                                    <th>Cobertura</th>
+                                    <th class="col-actions"><span class="sr-only">Acciones</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="paciente : ${pacientes}"
+                                    th:data-group="${paciente.obraSocial == true} ? 'con-os' : 'particular'">
+                                    <td>
+                                        <div class="person">
+                                            <span class="avatar"
+                                                th:text="${#strings.substring(paciente.nombre, 0, 1) + #strings.substring(paciente.apellido, 0, 1)}">MG</span>
+                                            <div>
+                                                <div class="person-name" th:text="${paciente.nombre + ' ' + paciente.apellido}">María García</div>
+                                                <div class="person-sub" th:text="'DNI ' + ${paciente.dni}">DNI 12345678</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="hide-sm">
+                                        <div class="nowrap" th:text="${paciente.telefono}">11-1234-5678</div>
+                                        <div class="person-sub" th:text="${not #strings.isEmpty(paciente.email)} ? ${paciente.email} : ${paciente.domicilio}">email</div>
+                                    </td>
+                                    <td>
+                                        <th:block th:if="${paciente.obraSocial == true}">
+                                            <span class="badge badge-info" th:text="${paciente.nombreObraSocial}">OSDE</span>
+                                            <div class="person-sub mt-1" th:if="${not #strings.isEmpty(paciente.plan)}" th:text="${paciente.plan}">Plan</div>
+                                        </th:block>
+                                        <span class="badge" th:unless="${paciente.obraSocial == true}">Particular</span>
+                                    </td>
+                                    <td class="col-actions">
+                                        <div class="row-actions">
+                                            <a th:href="@{/pacientes/editar/{id}(id=${paciente.id})}" class="btn btn-sm btn-secondary"
+                                                sec:authorize="hasRole('MEDICO')">
+                                                <svg class="icon"><use href="/images/icons.svg#file-text"></use></svg> Historial
+                                            </a>
+                                            <a th:href="@{/pacientes/editar/{id}(id=${paciente.id})}" class="icon-btn"
+                                                title="Editar" aria-label="Editar" sec:authorize="hasRole('ADMIN')">
+                                                <svg class="icon"><use href="/images/icons.svg#pencil"></use></svg>
+                                            </a>
+                                            <form th:action="@{/pacientes/eliminar/{id}(id=${paciente.id})}" method="post"
+                                                sec:authorize="hasRole('ADMIN')">
+                                                <button type="submit" class="icon-btn danger" title="Eliminar" aria-label="Eliminar"
+                                                    data-confirm-title="¿Eliminar paciente?"
+                                                    th:data-confirm="'Se eliminará a ' + ${paciente.nombre} + ' ' + ${paciente.apellido} + ' del sistema. Esta acción no se puede deshacer.'"
+                                                    data-confirm-ok="Eliminar">
+                                                    <svg class="icon"><use href="/images/icons.svg#trash"></use></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="no-results" style="display:none">
+                                    <td colspan="4">No hay pacientes que coincidan con la búsqueda.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="card empty" th:if="${#lists.isEmpty(pacientes)}">
+                    <span class="empty-icon"><svg class="icon icon-lg"><use href="/images/icons.svg#users"></use></svg></span>
+                    <h3>Todavía no hay pacientes</h3>
+                    <p>Cuando registres pacientes van a aparecer acá, listos para asignarles turnos.</p>
+                    <a th:href="@{/pacientes/nuevo}" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">
+                        <svg class="icon"><use href="/images/icons.svg#plus"></use></svg> Nuevo paciente
+                    </a>
+                </section>
             </div>
-        </div>
-
-        <div th:if="${pacientes == null or #lists.size(pacientes) == 0}" class="alert">
-            <h3>📋 No hay pacientes registrados</h3>
-            <p>Haga clic en "Nuevo Paciente" para agregar el primer paciente al sistema.</p>
-        </div>
+        </main>
     </div>
-</body>
 
-</html>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 
 </html>

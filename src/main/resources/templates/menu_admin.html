@@ -1,169 +1,144 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrador - SaludSync</title>
-    <link rel="stylesheet" href="/css/styles.css">
-</head>
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
 
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <h1>🏥 SaludSync - Panel Administrador</h1>
-        </div>
-        <ul>
-            <li><a href="/medicos">👨‍⚕️ Médicos</a></li>
-            <li><a href="/pacientes">🧑‍🤝‍🧑 Pacientes</a></li>
-            <li><a href="/turnos">📅 Turnos</a></li>
-            <li><a href="/usuarios">Usuarios</a></li>
-            <li><a href="/correo-prueba">Prueba de correo</a></li>
-            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
-        </ul>
-    </nav>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('inicio')}"></th:block>
 
-    <!-- Contenido principal -->
-    <div class="admin-container">
-        <div class="admin-header">
-            <h2>Panel de Administración</h2>
-            <div class="welcome-message">
-                <p>¡Bienvenido a SaludSync!</p>
-            </div>
-        </div>
-
-        <!-- Dashboard Grid -->
-        <div class="admin-dashboard">
-
-            <!-- Sección de Gestión -->
-            <section class="admin-section">
-                <h3 class="section-title">📋 Gestión del Sistema</h3>
-                <div class="cards-grid">
-
-                    <!-- Card Gestión de Médicos -->
-                    <div class="admin-card card-medicos">
-                        <div class="card-icon">👨‍⚕️</div>
-                        <div class="card-content">
-                            <h4>Gestión de Médicos</h4>
-                            <p>Administrar médicos, especialidades y horarios de atención</p>
-                            <div class="card-stats">
-                                <span>Médicos registrados</span>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <a href="/medicos/gestion" class="btn btn-primary">Administrar</a>
-                        </div>
+        <main class="main">
+            <div class="content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Panel de administración</h1>
+                        <p class="page-subtitle" id="saludo">Resumen general de la clínica.</p>
                     </div>
-
-                    <!-- Card Gestión de Pacientes -->
-                    <div class="admin-card card-pacientes">
-                        <div class="card-icon">👥</div>
-                        <div class="card-content">
-                            <h4>Gestión de Pacientes</h4>
-                            <p>Administrar pacientes, historiales clínicos y datos personales</p>
-                            <div class="card-stats">
-                                <span>Pacientes registrados</span>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <a href="/pacientes/gestion" class="btn btn-primary">Administrar</a>
-                        </div>
+                    <div class="actions">
+                        <a th:href="@{/calendario}" class="btn btn-secondary">
+                            <svg class="icon"><use href="/images/icons.svg#calendar-days"></use></svg> Calendario
+                        </a>
+                        <a th:href="@{/turnos/nuevo}" class="btn btn-primary">
+                            <svg class="icon"><use href="/images/icons.svg#plus"></use></svg> Nuevo turno
+                        </a>
                     </div>
-
-                    <!-- Card Gestión de Turnos -->
-                    <div class="admin-card card-turnos">
-                        <div class="card-icon">📅</div>
-                        <div class="card-content">
-                            <h4>Gestión de Turnos</h4>
-                            <p>Administrar citas médicas, programar turnos y gestionar agenda</p>
-                            <div class="card-stats">
-                                <span>Turnos programados</span>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <a href="/turnos/gestion" class="btn btn-primary">Administrar</a>
-                        </div>
-                    </div>
-
-                    <!-- Card Calendario de Turnos -->
-                    <div class="admin-card card-calendario">
-                        <div class="card-icon">🗓️</div>
-                        <div class="card-content">
-                            <h4>Calendario Semanal</h4>
-                            <p>Vista completa de todos los turnos programados en formato calendario</p>
-                            <div class="card-stats">
-                                <span>Vista por días y horarios</span>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <a href="/calendario" class="btn btn-primary">Ver Calendario</a>
-                        </div>
-                    </div>
-
                 </div>
-            </section>
 
-            <!-- Sección de Estadísticas -->
-            <section class="admin-section">
-                <h3 class="section-title">Estadísticas de la Clínica</h3>
-                <div class="stats-grid">
-
-                    <!-- Resumen General -->
-                    <div class="stats-card">
-                        <div class="stats-icon"></div>
-                        <div class="stats-content">
-                            <h4>Total de Turnos</h4>
-                            <div class="stats-number" th:text="${totalTurnos}">0</div>
-                            <p>Turnos registrados en el sistema</p>
+                <!-- Indicadores -->
+                <section class="grid grid-4 mb-4" aria-label="Indicadores">
+                    <div class="card stat">
+                        <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#calendar"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Turnos activos</div>
+                            <div class="stat-value" th:text="${turnosActivos}">0</div>
+                            <div class="stat-hint" th:text="${totalTurnos} + ' registrados en total'">0 en total</div>
                         </div>
                     </div>
+                    <div class="card stat">
+                        <span class="stat-icon info"><svg class="icon"><use href="/images/icons.svg#users"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Pacientes</div>
+                            <div class="stat-value" th:text="${totalPacientes}">0</div>
+                            <div class="stat-hint">Registrados en el sistema</div>
+                        </div>
+                    </div>
+                    <div class="card stat">
+                        <span class="stat-icon success"><svg class="icon"><use href="/images/icons.svg#stethoscope"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Médicos</div>
+                            <div class="stat-value" th:text="${totalMedicos}">0</div>
+                            <div class="stat-hint">Profesionales activos</div>
+                        </div>
+                    </div>
+                    <div class="card stat">
+                        <span class="stat-icon danger"><svg class="icon"><use href="/images/icons.svg#ban"></use></svg></span>
+                        <div>
+                            <div class="stat-label">Cancelados</div>
+                            <div class="stat-value" th:text="${turnosCanceladosDelMes}">0</div>
+                            <div class="stat-hint" th:text="'En ' + ${nombreMes}">Este mes</div>
+                        </div>
+                    </div>
+                </section>
 
-                    <!-- Top 3 Especialidades -->
-                    <div class="stats-card especialidades-card">
-                        <div class="stats-icon"></div>
-                        <div class="stats-content">
-                            <h4>Top 3 Especialidades</h4>
-                            <div class="especialidades-list"
-                                th:if="${top3Especialidades != null and not #lists.isEmpty(top3Especialidades)}">
-                                <div class="especialidad-item" th:each="especialidad, iterStat : ${top3Especialidades}">
-                                    <div class="posicion" th:text="${iterStat.index + 1 + '°'}">1°</div>
-                                    <div class="especialidad-info">
-                                        <div class="especialidad-nombre" th:text="${especialidad.key}">Cardiología</div>
-                                        <div class="especialidad-turnos" th:text="${especialidad.value + ' turnos'}">10
-                                            turnos</div>
+                <div class="grid grid-main">
+                    <!-- Accesos rápidos -->
+                    <section>
+                        <h2 class="card-title mb-3">Accesos rápidos</h2>
+                        <div class="grid grid-2">
+                            <a th:href="@{/turnos}" class="card quick-link">
+                                <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#calendar"></use></svg></span>
+                                <span>
+                                    <span class="ql-title">Turnos</span>
+                                    <span class="ql-desc" style="display:block">Agenda, edición y cancelaciones</span>
+                                </span>
+                                <svg class="icon ql-arrow"><use href="/images/icons.svg#arrow-right"></use></svg>
+                            </a>
+                            <a th:href="@{/calendario}" class="card quick-link">
+                                <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#calendar-days"></use></svg></span>
+                                <span>
+                                    <span class="ql-title">Calendario semanal</span>
+                                    <span class="ql-desc" style="display:block">Vista por día y horario</span>
+                                </span>
+                                <svg class="icon ql-arrow"><use href="/images/icons.svg#arrow-right"></use></svg>
+                            </a>
+                            <a th:href="@{/pacientes}" class="card quick-link">
+                                <span class="stat-icon info"><svg class="icon"><use href="/images/icons.svg#users"></use></svg></span>
+                                <span>
+                                    <span class="ql-title">Pacientes</span>
+                                    <span class="ql-desc" style="display:block">Datos personales y obra social</span>
+                                </span>
+                                <svg class="icon ql-arrow"><use href="/images/icons.svg#arrow-right"></use></svg>
+                            </a>
+                            <a th:href="@{/medicos}" class="card quick-link">
+                                <span class="stat-icon success"><svg class="icon"><use href="/images/icons.svg#stethoscope"></use></svg></span>
+                                <span>
+                                    <span class="ql-title">Médicos</span>
+                                    <span class="ql-desc" style="display:block">Especialidades, horarios y accesos</span>
+                                </span>
+                                <svg class="icon ql-arrow"><use href="/images/icons.svg#arrow-right"></use></svg>
+                            </a>
+                        </div>
+                    </section>
+
+                    <!-- Especialidades -->
+                    <section class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Especialidades más solicitadas</h2>
+                            <svg class="icon muted"><use href="/images/icons.svg#award"></use></svg>
+                        </div>
+                        <div class="card-body">
+                            <ol class="rank-list"
+                                th:if="${top3Especialidades != null and not #lists.isEmpty(top3Especialidades)}"
+                                th:with="max=${top3Especialidades[0].value}">
+                                <li class="rank-row" th:each="esp, it : ${top3Especialidades}">
+                                    <span class="rank-pos" th:text="${it.count}">1</span>
+                                    <div>
+                                        <div style="font-weight:600" th:text="${esp.key}">Cardiología</div>
+                                        <div class="rank-bar"><span th:style="'width:' + ${esp.value * 100 / max} + '%'"></span></div>
                                     </div>
-                                </div>
-                            </div>
-                            <div th:if="${top3Especialidades == null or #lists.isEmpty(top3Especialidades)}">
-                                <p class="no-data">No hay datos disponibles</p>
+                                    <span class="badge" th:text="${esp.value} + (${esp.value == 1} ? ' turno' : ' turnos')">10 turnos</span>
+                                </li>
+                            </ol>
+                            <div class="empty" style="padding:24px 8px"
+                                th:if="${top3Especialidades == null or #lists.isEmpty(top3Especialidades)}">
+                                <p style="margin:0">Todavía no hay turnos para calcular el ranking.</p>
                             </div>
                         </div>
-                    </div>
-
+                    </section>
                 </div>
-            </section>
-
-        </div>
+            </div>
+        </main>
     </div>
 
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
     <script>
-        // Inicializar efectos cuando carga la página
-        document.addEventListener('DOMContentLoaded', function () {
-            // Efecto hover suave solo para las cards (sin afectar el texto)
-            const cards = document.querySelectorAll('.admin-card, .stats-card');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', function () {
-                    this.style.transform = 'translateY(-3px)';
-                });
-
-                card.addEventListener('mouseleave', function () {
-                    this.style.transform = 'translateY(0)';
-                });
-            });
-        });
+        (function () {
+            const h = new Date().getHours();
+            const saludo = h < 12 ? 'Buenos días' : (h < 20 ? 'Buenas tardes' : 'Buenas noches');
+            const fecha = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('saludo').textContent = saludo + '. Hoy es ' + fecha + '.';
+        })();
     </script>
-
 </body>
 
 </html>

@@ -1,158 +1,169 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuevo Médico - SaludSync</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+<head th:replace="~{fragments/layout :: head(${medico.id != null ? 'Editar médico' : 'Nuevo médico'})}"></head>
 
-</head>
+<body>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('medicos')}"></th:block>
 
-<body class="theme-medicos">
-    <div class="container">
-        <nav class="navbar">
-            <div class="navbar-left">
-                <h1>🏥 SaludSync</h1>
+        <main class="main">
+            <div class="content-narrow">
+                <div class="page-header">
+                    <div>
+                        <a th:href="@{/medicos}" class="crumbs">
+                            <svg class="icon icon-sm"><use href="/images/icons.svg#chevron-left"></use></svg> Médicos
+                        </a>
+                        <h1 class="page-title" th:text="${medico.id != null} ? 'Editar médico' : 'Nuevo médico'">Nuevo médico</h1>
+                        <p class="page-subtitle" th:text="${medico.id != null} ? 'Actualizá los datos del profesional y su acceso.' : 'Al registrarlo se crea su usuario para ingresar al sistema.'"></p>
+                    </div>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <svg class="icon"><use href="/images/icons.svg#alert"></use></svg>
+                    <div class="alert-body" th:text="${error}"></div>
+                </div>
+
+                <form class="card" th:action="${medico.id != null} ? @{'/medicos/editar/' + ${medico.id}} : @{/medicos/guardar}"
+                    th:object="${medico}" method="post">
+
+                    <section class="form-section">
+                        <div class="form-section-head">
+                            <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#user"></use></svg></span>
+                            <div>
+                                <h3>Datos personales</h3>
+                                <p>Información de identificación y contacto.</p>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="nombre">Nombre<span class="req">*</span></label>
+                                <input type="text" th:field="*{nombre}" id="nombre" autocomplete="given-name" required>
+                            </div>
+                            <div class="field">
+                                <label for="apellido">Apellido<span class="req">*</span></label>
+                                <input type="text" th:field="*{apellido}" id="apellido" autocomplete="family-name" required>
+                            </div>
+                            <div class="field">
+                                <label for="dni">DNI<span class="req">*</span></label>
+                                <input type="text" th:field="*{dni}" id="dni" inputmode="numeric" placeholder="12345678"
+                                    pattern="[0-9]{7,8}" title="DNI de 7 u 8 dígitos" maxlength="8"
+                                    th:classappend="${error != null and #strings.contains(error, 'DNI')} ? 'campo-error'" required>
+                                <div class="hint">7 u 8 dígitos, sin puntos.</div>
+                            </div>
+                            <div class="field">
+                                <label for="telefono">Teléfono<span class="req">*</span></label>
+                                <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
+                                    pattern="[0-9\-\+\(\)\s]+" title="Solo números, espacios, guiones o paréntesis" required>
+                            </div>
+                            <div class="field span-2">
+                                <label for="domicilio">Domicilio<span class="req">*</span></label>
+                                <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad"
+                                    autocomplete="street-address" required>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <div class="form-section-head">
+                            <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#stethoscope"></use></svg></span>
+                            <div>
+                                <h3>Información profesional</h3>
+                                <p>Define qué horarios se ofrecen al agendar turnos.</p>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="especialidad">Especialidad<span class="req">*</span></label>
+                                <select th:field="*{especialidad}" id="especialidad" required>
+                                    <option value="">Seleccioná una especialidad</option>
+                                    <option value="Cardiología">Cardiología</option>
+                                    <option value="Dermatología">Dermatología</option>
+                                    <option value="Endocrinología">Endocrinología</option>
+                                    <option value="Gastroenterología">Gastroenterología</option>
+                                    <option value="Ginecología">Ginecología</option>
+                                    <option value="Medicina General">Medicina General</option>
+                                    <option value="Neurología">Neurología</option>
+                                    <option value="Oftalmología">Oftalmología</option>
+                                    <option value="Ortopedia">Ortopedia</option>
+                                    <option value="Pediatría">Pediatría</option>
+                                    <option value="Psiquiatría">Psiquiatría</option>
+                                    <option value="Traumatología">Traumatología</option>
+                                    <option value="Urología">Urología</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="horario">Horario de atención<span class="req">*</span></label>
+                                <select th:field="*{horario}" id="horario" required>
+                                    <option value="">Seleccioná un horario</option>
+                                    <option value="Mañana (8:00 - 14:00)">Mañana (8:00 - 14:00)</option>
+                                    <option value="Tarde (14:00 - 20:00)">Tarde (14:00 - 20:00)</option>
+                                    <option value="Tiempo Completo (8:00 - 20:00)">Tiempo completo (8:00 - 20:00)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" th:field="*{turnosSemanales}">
+                        <input type="hidden" th:field="*{turnosCancelados}">
+                    </section>
+
+                    <section class="form-section">
+                        <div class="form-section-head">
+                            <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#lock"></use></svg></span>
+                            <div>
+                                <h3>Acceso al sistema</h3>
+                                <p>Con estos datos el médico inicia sesión y ve sus turnos.</p>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="usuario">Usuario<span class="req">*</span></label>
+                                <input type="text" th:field="*{usuario}" id="usuario" placeholder="dr.juan.perez"
+                                    pattern="^[a-zA-Z0-9._]+$" title="Solo letras, números, puntos y guiones bajos"
+                                    autocomplete="off" autocapitalize="off" spellcheck="false"
+                                    th:classappend="${error != null and #strings.contains(error, 'usuario')} ? 'campo-error'" required>
+                                <div class="hint">Letras, números, puntos y guiones bajos. Distingue mayúsculas.</div>
+                            </div>
+                            <div class="field">
+                                <label for="contraseña">Contraseña<span class="req">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" th:field="*{contraseña}" id="contraseña" minlength="6"
+                                        autocomplete="new-password" required>
+                                    <button type="button" class="icon-btn" data-toggle-pass="contraseña" aria-label="Mostrar contraseña">
+                                        <svg class="icon"><use href="/images/icons.svg#eye"></use></svg>
+                                    </button>
+                                </div>
+                                <div class="hint">Mínimo 6 caracteres.</div>
+                            </div>
+                        </div>
+                        <input type="hidden" th:field="*{rol}">
+                    </section>
+
+                    <div class="form-actions">
+                        <a th:href="@{/medicos}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="icon"><use href="/images/icons.svg#check"></use></svg>
+                            <span th:text="${medico.id != null} ? 'Guardar cambios' : 'Registrar médico'">Registrar médico</span>
+                        </button>
+                    </div>
+                </form>
             </div>
-            <ul>
-                <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
-            </ul>
-        </nav>
-        <h2 th:text="${medico.id != null} ? '✏️ Editar Médico' : '🩺 Registrar Nuevo Médico'"></h2>
-
-        <!-- Mensaje de error dinámico -->
-        <div th:if="${error}" class="error-message"
-            style="background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 10px; margin-bottom: 20px; color: #721c24;">
-            <strong>⚠️ Error:</strong> <span th:text="${error}"></span>
-        </div>
-
-        <!-- Mensaje de éxito dinámico -->
-        <div th:if="${param.exito}" class="success-message"
-            style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 10px; margin-bottom: 20px; color: #155724;">
-            <strong>✅ Éxito:</strong>
-            <span th:if="${param.exito[0] == 'medico_guardado'}">Médico registrado correctamente.</span>
-            <span th:if="${param.exito[0] == 'medico_actualizado'}">Médico actualizado correctamente.</span>
-            <span th:if="${param.exito[0] == 'exito' or param.exito[0] == ''}">Operación realizada exitosamente.</span>
-        </div>
-
-        <!-- Mensajes de error por parámetros (legacy) -->
-        <div th:if="${param.error}" class="alert alert-danger">
-            <span th:if="${param.error == 'usuario_existente'}">❌ Error: El nombre de usuario ya existe. Elija
-                otro.</span>
-            <span th:if="${param.error == 'medico_ya_registrado'}">❌ Error: Médico ya registrado con ese DNI.</span>
-            <span th:if="${param.error == 'guardado'}">❌ Error al guardar el médico. Inténtelo nuevamente.</span>
-            <span th:if="${param.error == null or param.error == ''}">❌ Ocurrió un error inesperado. Inténtelo
-                nuevamente.</span>
-        </div>
-
-        <form th:action="${medico.id != null} ? @{'/medicos/editar/' + ${medico.id}} : @{/medicos/guardar}"
-            th:object="${medico}" method="post">
-            <!-- Información de Usuario -->
-            <fieldset>
-                <legend>👤 Credenciales de Acceso</legend>
-                <div sec:authorize="!hasRole('MEDICO')">
-                    <label for="usuario">Nombre de Usuario:</label>
-                    <input type="text" th:field="*{usuario}" id="usuario" placeholder="Ejemplo: dr.juan.perez"
-                        pattern="^[a-zA-Z0-9._]+$" title="Solo letras, números, puntos y guiones bajos"
-                        th:class="${error != null and #strings.contains(error, 'usuario') ? 'campo-error' : ''}"
-                        required>
-
-                    <label for="contraseña">Contraseña:</label>
-                    <input type="password" th:field="*{contraseña}" id="contraseña" placeholder="Mínimo 6 caracteres"
-                        minlength="6" required>
-                </div>
-                <!-- Campo rol oculto, siempre MEDICO -->
-                <input type="hidden" th:field="*{rol}" value="MEDICO">
-            </fieldset>
-
-            <!-- Información Personal -->
-            <fieldset>
-                <legend>📋 Información Personal</legend>
-
-                <div sec:authorize="!hasRole('MEDICO')">
-                    <label for="nombre">Nombre:</label>
-                    <input type="text" th:field="*{nombre}" id="nombre" placeholder="Ingrese nombre" required>
-
-                    <label for="apellido">Apellido:</label>
-                    <input type="text" th:field="*{apellido}" id="apellido" placeholder="Ingrese apellido" required>
-
-                    <label for="dni">DNI:</label>
-                    <input type="text" th:field="*{dni}" id="dni" placeholder="12345678" pattern="[0-9]{7,8}"
-                        title="DNI de 7 u 8 dígitos"
-                        th:class="${error != null and #strings.contains(error, 'DNI') ? 'campo-error' : ''}" required>
-
-                    <label for="domicilio">Domicilio:</label>
-                    <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad"
-                        required>
-
-                    <label for="telefono">Teléfono:</label>
-                    <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
-                        pattern="[0-9\-\+\(\)\s]+" title="Formato: 11-1234-5678" required>
-                </div>
-            </fieldset>
-
-            <!-- Información Profesional -->
-            <fieldset>
-                <legend>🏥 Información Profesional</legend>
-
-
-                <div sec:authorize="!hasRole('MEDICO')">
-                    <label for="especialidad">Especialidad:</label>
-                    <select th:field="*{especialidad}" id="especialidad" required>
-                        <option value="">Seleccione una especialidad</option>
-                        <option value="Cardiología">Cardiología</option>
-                        <option value="Dermatología">Dermatología</option>
-                        <option value="Endocrinología">Endocrinología</option>
-                        <option value="Gastroenterología">Gastroenterología</option>
-                        <option value="Ginecología">Ginecología</option>
-                        <option value="Medicina General">Medicina General</option>
-                        <option value="Neurología">Neurología</option>
-                        <option value="Oftalmología">Oftalmología</option>
-                        <option value="Ortopedia">Ortopedia</option>
-                        <option value="Pediatría">Pediatría</option>
-                        <option value="Psiquiatría">Psiquiatría</option>
-                        <option value="Traumatología">Traumatología</option>
-                        <option value="Urología">Urología</option>
-                    </select>
-
-                    <label for="horario">Horario de Atención:</label>
-                    <select th:field="*{horario}" id="horario" required>
-                        <option value="">Seleccione un horario</option>
-                        <option value="Mañana (8:00 - 14:00)">Mañana (8:00 - 14:00)</option>
-                        <option value="Tarde (14:00 - 20:00)">Tarde (14:00 - 20:00)</option>
-                        <option value="Tiempo Completo (8:00 - 20:00)">Tiempo Completo (8:00 - 20:00)</option>
-                    </select>
-                </div>
-
-                <!-- Campos ocultos para turnos (se editarán por separado) -->
-                <input type="hidden" th:field="*{turnosSemanales}" th:value="${medico.turnosSemanales ?: 0}">
-                <input type="hidden" th:field="*{turnosCancelados}" th:value="${medico.turnosCancelados ?: 0}">
-
-                <div
-                    style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px; color: #6c757d;">
-                    <strong>📅 Nota:</strong> Los turnos semanales y cancelados se configurarán posteriormente desde la
-                    gestión de turnos.
-                </div>
-            </fieldset>
-
-
-            <div style="text-align: center; margin-top: 30px;">
-                <button type="submit" class="btn btn-primary"
-                    th:text="${medico.id != null} ? '💾 Guardar Cambios' : '💾 Registrar Médico'"></button>
-                <a href="/medicos" class="btn btn-secondary">❌ Cancelar</a>
-            </div>
-        </form>
+        </main>
     </div>
 
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
     <script>
-        // Validación de DNI en tiempo real
         document.getElementById('dni').addEventListener('input', function (e) {
-            let value = e.target.value.replace(/\D/g, '');
-            e.target.value = value;
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+        document.querySelectorAll('[data-toggle-pass]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(btn.dataset.togglePass);
+                const visible = input.type === 'text';
+                input.type = visible ? 'password' : 'text';
+                btn.querySelector('use').setAttribute('href', '/images/icons.svg#' + (visible ? 'eye' : 'eye-off'));
+            });
         });
     </script>
-
 </body>
 
 </html>

@@ -1,48 +1,56 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuarios - SaludSync</title>
-    <link rel="stylesheet" href="/css/styles.css">
-</head>
+<head th:replace="~{fragments/layout :: head('Usuarios')}"></head>
 
 <body>
-    <nav class="navbar">
-        <div class="navbar-left">
-            <h1>SaludSync - Usuarios</h1>
-        </div>
-        <ul>
-            <li><a href="/">Inicio</a></li>
-            <li><a href="/logout">Cerrar sesión</a></li>
-        </ul>
-    </nav>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('usuarios')}"></th:block>
 
-    <main class="admin-container">
-        <div class="admin-header">
-            <h2>Cuentas registradas</h2>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Usuario</th>
-                        <th>Rol</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="usuario : ${usuarios}">
-                        <td th:text="${usuario.username}"></td>
-                        <td th:text="${usuario.rol}"></td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(usuarios)}">
-                        <td colspan="2">No hay usuarios registrados.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
+        <main class="main">
+            <div class="content-narrow">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Usuarios</h1>
+                        <p class="page-subtitle">Cuentas con acceso al sistema. Los usuarios médicos se crean al registrar un médico.</p>
+                    </div>
+                </div>
+
+                <section class="card">
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="usuario : ${usuarios}">
+                                    <td>
+                                        <div class="person">
+                                            <span class="avatar avatar-sm" th:text="${#strings.substring(usuario.username, 0, 1)}">A</span>
+                                            <span class="person-name" th:text="${usuario.username}">admin</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-dot"
+                                            th:classappend="${usuario.rol == 'ADMIN'} ? 'badge-warning' : 'badge-primary'"
+                                            th:text="${usuario.rol == 'ADMIN'} ? 'Administrador' : (${usuario.rol == 'MEDICO'} ? 'Médico' : ${usuario.rol})">Rol</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(usuarios)}" class="no-results">
+                                    <td colspan="2">No hay usuarios registrados.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 
 </html>
