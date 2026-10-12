@@ -1,81 +1,70 @@
 package Farmacia.Farmacia.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
-import Farmacia.Farmacia.Service.MedicoService;
-import Farmacia.Farmacia.Service.TurnosService;
 import Farmacia.Farmacia.Model.Medico;
 import Farmacia.Farmacia.Model.Turnos;
+import Farmacia.Farmacia.Service.MedicoService;
+import Farmacia.Farmacia.Service.PacienteService;
+import Farmacia.Farmacia.Service.TurnosService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+// Página de inicio: muestra el panel que corresponde al rol del usuario
 @Controller
-@RequestMapping
 public class WebController {
 
-    @Autowired
-    private MedicoService medicoService;
+    private final MedicoService medicoService;
+    private final TurnosService turnosService;
+    private final PacienteService pacienteService;
 
-    @Autowired
-    private TurnosService turnosService;
+    public WebController(MedicoService medicoService, TurnosService turnosService, PacienteService pacienteService) {
+        this.medicoService = medicoService;
+        this.turnosService = turnosService;
+        this.pacienteService = pacienteService;
+    }
 
     @GetMapping("/")
-    public String menu(Model model, Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-
-            // Verificar si es ADMIN
-            if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-                // Obtener todos los turnos
-                List<Turnos> todosTurnos = turnosService.obtenerTurnos();
-                
-                // Calcular especialidades con más turnos
-                Map<String, Long> turnosPorEspecialidad = todosTurnos.stream()
-                    .filter(turno -> turno.getMedico() != null && turno.getMedico().getEspecialidad() != null)
-                    .collect(Collectors.groupingBy(
-                        turno -> turno.getMedico().getEspecialidad(),
-                        Collectors.counting()
-                    ));
-                
-                // Obtener top 3 especialidades ordenadas por cantidad de turnos
-                List<Map.Entry<String, Long>> top3Especialidades = turnosPorEspecialidad.entrySet().stream()
-                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                    .limit(3)
-                    .collect(Collectors.toList());
-                
-                model.addAttribute("rol", "ADMIN");
-                model.addAttribute("username", username);
-                model.addAttribute("top3Especialidades", top3Especialidades);
-                model.addAttribute("totalTurnos", todosTurnos.size());
-                return "menu_admin";
-            }
-
-            // Verificar si es MEDICO
-            if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MEDICO"))) {
-                // Buscar el médico en la tabla medico para obtener su nombre
-                Medico medico = medicoService.getAllMedicos().stream()
-                        .filter(m -> m.getUsuario().equals(username))
-                        .findFirst()
-                        .orElse(null);
-
-                if (medico != null) {
-                    model.addAttribute("rol", "MEDICO");
-                    model.addAttribute("nombreCompleto", medico.getNombre() + " " + medico.getApellido());
-                    model.addAttribute("username", username);
-                    return "menu_medico";
-                }
-            }
+    public String inicio(Model model, Authentication authentication) {
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            return panelAdministrador(model);
         }
 
-        // Si no está autenticado o no tiene rol válido, redirigir al login
+        Medico medico = medicoService.getMedicoByUsername(authentication.getName());
+        if (medico != null) {
+            model.addAttribute("nombreCompleto", medico.getNombre() + " " + medico.getApellido());
+            return "menu_medico";
+        }
+
+        // Usuario sin un rol reconocido
         return "redirect:/login";
+    }
+
+    private String panelAdministrador(Model model) {
+        List<Turnos> turnos = turnosService.obtenerTurnos();
+
+        // Cantidad de turnos por especialidad, de mayor a menor (las 3 primeras)
+        List<Map.Entry<String, Long>> top3Especialidades = turnos.stream()
+                .filter(turno -> turno.getMedico() != null && turno.getMedico().getEspecialidad() != null)
+                .collect(Collectors.groupingBy(turno -> turno.getMedico().getEspecialidad(), Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(3)
+                .toList();
+
+        model.addAttribute("top3Especialidades", top3Especialidades);
+        model.addAttribute("totalTurnos", turnos.size());
+        model.addAttribute("turnosActivos", turnos.stream().filter(turno -> !turno.isCancelado()).count());
+        model.addAttribute("totalMedicos", medicoService.getAllMedicos().size());
+        model.addAttribute("totalPacientes", pacienteService.getAllPacientes().size());
+        model.addAttribute("turnosCanceladosDelMes", turnosService.obtenerTurnosCanceladosDelMes());
+        model.addAttribute("nombreMes", turnosService.obtenerNombreDelMes());
+        return "menu_admin";
     }
 }

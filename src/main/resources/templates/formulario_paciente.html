@@ -1,174 +1,211 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuevo Paciente - SaludSync</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-</head>
+<head th:replace="~{fragments/layout :: head(${esMedico ? 'Historial clínico' : (paciente.id != null ? 'Editar paciente' : 'Nuevo paciente')})}"></head>
 
-<body class="theme-pacientes">
-    <div class="container">
-        <nav class="navbar">
-            <div class="navbar-left">
-                <h1>🏥 SaludSync</h1>
-            </div>
-            <ul>
-                <li><a href="javascript:history.back()" class="nav-back">⬅️ Volver</a></li>
-            </ul>
-        </nav>
-        <h2
-            th:text="${esMedico} ? '🩺 Consulta de Paciente' : (${paciente.id != null} ? '✏️ Editar Paciente' : '🩺 Registrar Nuevo Paciente')">
-        </h2>
+<body>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('pacientes')}"></th:block>
 
-        <!-- Mensaje informativo para médicos -->
-        <div th:if="${esMedico}" class="medico-info">
-            ℹ️ <strong>Modo Médico:</strong> Los datos personales están protegidos. Solo puede modificar el historial
-            clínico.
-        </div>
-
-        <!-- Mensaje de error -->
-        <div th:if="${error}" class="error-message">
-            <strong>⚠️ Error:</strong> <span th:text="${error}"></span>
-        </div>
-
-        <!-- Mensaje de éxito -->
-        <div th:if="${param.exito}" class="success-message">
-            <strong>✅ Éxito:</strong>
-            <span th:if="${param.exito[0] == 'paciente_guardado'}">Paciente registrado correctamente.</span>
-            <span th:if="${param.exito[0] == 'paciente_actualizado'}">Paciente actualizado correctamente.</span>
-        </div>
-
-        <form th:action="${paciente.id != null} ? @{'/pacientes/editar/' + ${paciente.id}} : @{/pacientes/guardar}"
-            th:object="${paciente}" method="post">
-            <fieldset>
-                <legend>🩺 Información del Paciente</legend>
-
-                <div>
-                    <label for="nombre">Nombre:</label>
-                    <input type="text" th:field="*{nombre}" id="nombre" placeholder="Ingrese nombre"
-                        th:readonly="${esMedico}" required>
-
-                    <label for="apellido">Apellido:</label>
-                    <input type="text" th:field="*{apellido}" id="apellido" placeholder="Ingrese apellido"
-                        th:readonly="${esMedico}" required>
-
-                    <label for="dni">DNI:</label>
-                    <input type="text" th:field="*{dni}" id="dni" placeholder="12345678" pattern="[0-9]{7,8}"
-                        title="DNI de 7 u 8 dígitos" th:readonly="${esMedico}"
-                        th:class="${error != null ? 'campo-error' : ''}" required>
-
-                    <label for="domicilio">Domicilio:</label>
-                    <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad"
-                        th:readonly="${esMedico}" required>
-
-                    <label for="telefono">Teléfono:</label>
-                    <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
-                        pattern="[0-9\-\+\(\)\s]+" title="Formato: 11-1234-5678" th:readonly="${esMedico}" required>
-
-                    <label for="obraSocial">¿Tiene Obra Social?</label>
-                    <select th:field="*{obraSocial}" id="obraSocial" th:disabled="${esMedico}" required>
-                        <option value="">Seleccione</option>
-                        <option value="true">Sí</option>
-                        <option value="false">No</option>
-                    </select>
-
-                    <!-- Campos de obra social que se mostrarán/ocultarán -->
-                    <div id="camposObraSocial">
-                        <label for="nombreObraSocial">Obra Social:</label>
-                        <select th:field="*{nombreObraSocial}" id="nombreObraSocial" th:disabled="${esMedico}">
-                            <option value="">Seleccione una obra social</option>
-                            <option value="OSDE">OSDE</option>
-                            <option value="Swiss Medical">Swiss Medical</option>
-                            <option value="Galeno">Galeno</option>
-                            <option value="Medicus">Medicus</option>
-                            <option value="Accord Salud">Accord Salud</option>
-                            <option value="Omint">Omint</option>
-                            <option value="Hospital Italiano">Hospital Italiano</option>
-                            <option value="Hospital Alemán">Hospital Alemán</option>
-                            <option value="Sancor Salud">Sancor Salud</option>
-                            <option value="Federada Salud">Federada Salud</option>
-                            <option value="IOMA">IOMA</option>
-                            <option value="PAMI">PAMI</option>
-                            <option value="Obra Social del Personal de la Alimentación">Obra Social del Personal de la
-                                Alimentación</option>
-                            <option value="OSECAC">OSECAC</option>
-                            <option value="OSDEPYM">OSDEPYM</option>
-                            <option value="Otra">Otra</option>
-                        </select>
-
-                        <label for="plan">Plan:</label>
-                        <input type="text" th:field="*{plan}" id="plan" placeholder="Ej: Plan 210, Plan Familiar, etc."
-                            th:readonly="${esMedico}">
-
-                        <label for="afiliado">N° de Afiliado:</label>
-                        <input type="text" th:field="*{afiliado}" id="afiliado" placeholder="Número de afiliado"
-                            th:readonly="${esMedico}">
+        <main class="main">
+            <div class="content-narrow">
+                <div class="page-header">
+                    <div>
+                        <a th:href="@{/pacientes}" class="crumbs">
+                            <svg class="icon icon-sm"><use href="/images/icons.svg#chevron-left"></use></svg> Pacientes
+                        </a>
+                        <h1 class="page-title"
+                            th:text="${esMedico} ? ${paciente.nombre + ' ' + paciente.apellido} : (${paciente.id != null} ? 'Editar paciente' : 'Nuevo paciente')">
+                            Nuevo paciente</h1>
+                        <p class="page-subtitle"
+                            th:text="${esMedico} ? 'Ficha del paciente e historial clínico.' : 'Completá los datos personales y la cobertura médica.'"></p>
                     </div>
                 </div>
 
-                <!-- Historial clínico solo para médicos -->
-                <div th:if="${esMedico}">
-                    <fieldset class="historial-fieldset">
-                        <legend class="historial-legend">🩺 Historial Clínico</legend>
-                        <label for="historialClinico">Historial Clínico:</label>
-                        <textarea th:field="*{historialClinico}" id="historialClinico" rows="6"
-                            placeholder="Observaciones médicas, antecedentes, diagnósticos, tratamientos, etc."></textarea>
-                    </fieldset>
+                <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <svg class="icon"><use href="/images/icons.svg#alert"></use></svg>
+                    <div class="alert-body" th:text="${error}"></div>
                 </div>
-            </fieldset>
 
-            <div class="form-buttons">
-                <button type="submit" class="btn btn-primary"
-                    th:text="${esMedico} ? '💾 Actualizar Historial Clínico' : (${paciente.id != null} ? '💾 Guardar Cambios' : '💾 Registrar Paciente')"></button>
-                <a href="/pacientes" class="btn btn-secondary">❌ Cancelar</a>
+                <form class="card" th:action="${paciente.id != null} ? @{'/pacientes/editar/' + ${paciente.id}} : @{/pacientes/guardar}"
+                    th:object="${paciente}" method="post">
+
+                    <!-- ===== Vista médico: ficha de solo lectura + historial ===== -->
+                    <th:block th:if="${esMedico}">
+                        <section class="form-section">
+                            <div class="form-section-head">
+                                <span class="avatar"
+                                    th:text="${#strings.substring(paciente.nombre, 0, 1) + #strings.substring(paciente.apellido, 0, 1)}">MG</span>
+                                <div>
+                                    <h3>Datos del paciente</h3>
+                                    <p>Solo el administrador puede modificar estos datos.</p>
+                                </div>
+                            </div>
+                            <dl class="detail-list">
+                                <dt>DNI</dt>
+                                <dd th:text="${paciente.dni}">12345678</dd>
+                                <dt>Teléfono</dt>
+                                <dd th:text="${paciente.telefono}">11-1234-5678</dd>
+                                <dt>Correo</dt>
+                                <dd th:text="${#strings.isEmpty(paciente.email)} ? '—' : ${paciente.email}">—</dd>
+                                <dt>Domicilio</dt>
+                                <dd th:text="${paciente.domicilio}">Domicilio</dd>
+                                <dt>Cobertura</dt>
+                                <dd th:text="${paciente.obraSocial == true} ? ${paciente.nombreObraSocial + (#strings.isEmpty(paciente.plan) ? '' : ' · ' + paciente.plan) + (#strings.isEmpty(paciente.afiliado) ? '' : ' · N° ' + paciente.afiliado)} : 'Particular'">
+                                    Particular</dd>
+                            </dl>
+                        </section>
+
+                        <section class="form-section">
+                            <div class="form-section-head">
+                                <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#file-text"></use></svg></span>
+                                <div>
+                                    <h3>Historial clínico</h3>
+                                    <p>Antecedentes, diagnósticos, tratamientos y observaciones.</p>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="historialClinico" class="sr-only">Historial clínico</label>
+                                <textarea th:field="*{historialClinico}" id="historialClinico" rows="12"
+                                    placeholder="Ej.: 12/03 - Control anual. Presión 120/80. Sin novedades."></textarea>
+                            </div>
+                        </section>
+                    </th:block>
+
+                    <!-- ===== Vista administrador: formulario completo ===== -->
+                    <th:block th:unless="${esMedico}">
+                        <section class="form-section">
+                            <div class="form-section-head">
+                                <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#user"></use></svg></span>
+                                <div>
+                                    <h3>Datos personales</h3>
+                                    <p>Identificación y medios de contacto.</p>
+                                </div>
+                            </div>
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label for="nombre">Nombre<span class="req">*</span></label>
+                                    <input type="text" th:field="*{nombre}" id="nombre" required>
+                                </div>
+                                <div class="field">
+                                    <label for="apellido">Apellido<span class="req">*</span></label>
+                                    <input type="text" th:field="*{apellido}" id="apellido" required>
+                                </div>
+                                <div class="field">
+                                    <label for="dni">DNI<span class="req">*</span></label>
+                                    <input type="text" th:field="*{dni}" id="dni" inputmode="numeric" placeholder="12345678"
+                                        pattern="[0-9]{7,8}" title="DNI de 7 u 8 dígitos" maxlength="8"
+                                        th:classappend="${error != null} ? 'campo-error'" required>
+                                    <div class="hint">7 u 8 dígitos, sin puntos.</div>
+                                </div>
+                                <div class="field">
+                                    <label for="telefono">Teléfono<span class="req">*</span></label>
+                                    <input type="tel" th:field="*{telefono}" id="telefono" placeholder="11-1234-5678"
+                                        pattern="[0-9\-\+\(\)\s]+" title="Solo números, espacios, guiones o paréntesis" required>
+                                </div>
+                                <div class="field">
+                                    <label for="email">Correo electrónico</label>
+                                    <input type="email" th:field="*{email}" id="email" placeholder="paciente@ejemplo.com">
+                                    <div class="hint">Se usa para enviar la confirmación de cada turno.</div>
+                                </div>
+                                <div class="field">
+                                    <label for="domicilio">Domicilio<span class="req">*</span></label>
+                                    <input type="text" th:field="*{domicilio}" id="domicilio" placeholder="Calle, número, ciudad" required>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section">
+                            <div class="form-section-head">
+                                <span class="stat-icon info"><svg class="icon"><use href="/images/icons.svg#card"></use></svg></span>
+                                <div>
+                                    <h3>Cobertura médica</h3>
+                                    <p>Obra social o prepaga del paciente.</p>
+                                </div>
+                            </div>
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label for="obraSocial">¿Tiene obra social?<span class="req">*</span></label>
+                                    <select th:field="*{obraSocial}" id="obraSocial" required>
+                                        <option value="">Seleccioná</option>
+                                        <option value="true">Sí</option>
+                                        <option value="false">No, es particular</option>
+                                    </select>
+                                </div>
+                                <div class="reveal" id="camposObraSocial">
+                                    <div class="field">
+                                        <label for="nombreObraSocial">Obra social<span class="req">*</span></label>
+                                        <select th:field="*{nombreObraSocial}" id="nombreObraSocial">
+                                            <option value="">Seleccioná una obra social</option>
+                                            <option value="OSDE">OSDE</option>
+                                            <option value="Swiss Medical">Swiss Medical</option>
+                                            <option value="Galeno">Galeno</option>
+                                            <option value="Medicus">Medicus</option>
+                                            <option value="Accord Salud">Accord Salud</option>
+                                            <option value="Omint">Omint</option>
+                                            <option value="Hospital Italiano">Hospital Italiano</option>
+                                            <option value="Hospital Alemán">Hospital Alemán</option>
+                                            <option value="Sancor Salud">Sancor Salud</option>
+                                            <option value="Federada Salud">Federada Salud</option>
+                                            <option value="IOMA">IOMA</option>
+                                            <option value="PAMI">PAMI</option>
+                                            <option value="Obra Social del Personal de la Alimentación">Obra Social del Personal de la Alimentación</option>
+                                            <option value="OSECAC">OSECAC</option>
+                                            <option value="OSDEPYM">OSDEPYM</option>
+                                            <option value="Otra">Otra</option>
+                                        </select>
+                                    </div>
+                                    <div class="field">
+                                        <label for="plan">Plan<span class="req">*</span></label>
+                                        <input type="text" th:field="*{plan}" id="plan" placeholder="Ej.: Plan 210">
+                                    </div>
+                                    <div class="field">
+                                        <label for="afiliado">N° de afiliado<span class="req">*</span></label>
+                                        <input type="text" th:field="*{afiliado}" id="afiliado">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </th:block>
+
+                    <div class="form-actions">
+                        <a th:href="@{/pacientes}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="icon"><use href="/images/icons.svg#check"></use></svg>
+                            <span th:text="${esMedico} ? 'Guardar historial' : (${paciente.id != null} ? 'Guardar cambios' : 'Registrar paciente')">Registrar paciente</span>
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </main>
     </div>
 
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
     <script>
-        // Validación de DNI en tiempo real
-        document.getElementById('dni').addEventListener('input', function (e) {
-            let value = e.target.value.replace(/\D/g, '');
-            e.target.value = value;
-        });
+        (function () {
+            const dni = document.getElementById('dni');
+            if (dni) dni.addEventListener('input', function (e) {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
 
-        // Control de visibilidad de campos de obra social
-        function toggleCamposObraSocial() {
-            const tieneObraSocial = document.getElementById('obraSocial').value;
-            const camposObraSocial = document.getElementById('camposObraSocial');
-            const selectObraSocial = document.getElementById('nombreObraSocial');
-            const inputPlan = document.getElementById('plan');
-            const inputAfiliado = document.getElementById('afiliado');
+            const tiene = document.getElementById('obraSocial');
+            if (!tiene) return;
+            const bloque = document.getElementById('camposObraSocial');
+            const campos = ['nombreObraSocial', 'plan', 'afiliado'].map(id => document.getElementById(id));
 
-            if (tieneObraSocial === 'true') {
-                camposObraSocial.style.display = 'block';
-                camposObraSocial.classList.add('show');
-                // Hacer campos obligatorios
-                selectObraSocial.setAttribute('required', 'required');
-                inputPlan.setAttribute('required', 'required');
-                inputAfiliado.setAttribute('required', 'required');
-            } else {
-                camposObraSocial.style.display = 'none';
-                camposObraSocial.classList.remove('show');
-                // Limpiar valores y quitar requerimiento
-                selectObraSocial.value = '';
-                inputPlan.value = '';
-                inputAfiliado.value = '';
-                selectObraSocial.removeAttribute('required');
-                inputPlan.removeAttribute('required');
-                inputAfiliado.removeAttribute('required');
+            function actualizar(limpiar) {
+                const mostrar = tiene.value === 'true';
+                bloque.classList.toggle('show', mostrar);
+                campos.forEach(function (c) {
+                    c.required = mostrar;
+                    if (!mostrar && limpiar) c.value = '';
+                });
             }
-        }
-
-        // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function () {
-            toggleCamposObraSocial();
-            document.getElementById('obraSocial').addEventListener('change', toggleCamposObraSocial);
-        });
+            tiene.addEventListener('change', function () { actualizar(true); });
+            tiene.form.addEventListener('submit', function () { actualizar(true); });
+            actualizar(false);
+        })();
     </script>
-
 </body>
 
 </html>

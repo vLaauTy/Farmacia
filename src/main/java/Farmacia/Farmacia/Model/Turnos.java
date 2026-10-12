@@ -1,10 +1,15 @@
 package Farmacia.Farmacia.Model;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "turnos")
 public class Turnos {
+
+    public static final String ACTIVO = "ACTIVO";
+    public static final String CANCELADO = "CANCELADO";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +38,7 @@ public class Turnos {
     private String hora;
 
     @Column
-    private String estado = "ACTIVO";
+    private String estado = ACTIVO;
 
     public Long getId() {
         return id;
@@ -97,5 +102,17 @@ public class Turnos {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public boolean isCancelado() {
+        return CANCELADO.equals(estado);
+    }
+
+    // Fecha del turno armada a partir de día, mes y año (null si falta alguno)
+    public LocalDate getFecha() {
+        if (anio == null || mes == null || dia == null) {
+            return null;
+        }
+        return LocalDate.of(anio, mes, dia);
     }
 }

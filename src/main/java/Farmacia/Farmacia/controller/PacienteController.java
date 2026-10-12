@@ -1,6 +1,6 @@
 package Farmacia.Farmacia.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,106 +13,86 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import Farmacia.Farmacia.Model.Paciente;
 import Farmacia.Farmacia.Service.PacienteService;
 
+// El ADMIN gestiona los pacientes; el MEDICO solo ve el listado y edita el historial clínico
+// (ver UserConfig)
 @Controller
-@RequestMapping
+@RequestMapping("/pacientes")
 public class PacienteController {
 
-    @Autowired
-    private PacienteService pacienteService;
+    private final PacienteService pacienteService;
 
-    @GetMapping("/pacientes/gestion")
-    public String gestionPacientes(Model model) {
-        return "gestion_paciente";
+    public PacienteController(PacienteService pacienteService) {
+        this.pacienteService = pacienteService;
     }
 
-    @GetMapping("/pacientes")
+    @GetMapping
     public String listarPacientes(Model model) {
         model.addAttribute("pacientes", pacienteService.getAllPacientes());
         return "pacientes";
     }
 
-    @GetMapping("/pacientes/nuevo")
-    public String mostrarFormularioNuevoPaciente(Model model, Authentication authentication) {
-        // Verificar si el usuario es médico
-        boolean esMedico = authentication != null && authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MEDICO"));
-
-        model.addAttribute("esMedico", esMedico);
-        model.addAttribute("paciente", new Paciente());
-
-        return "formulario_paciente";
+    @GetMapping("/nuevo")
+    public String nuevoPaciente(Model model) {
+        return mostrarFormulario(model, new Paciente(), false, null);
     }
 
-    @PostMapping("/pacientes/guardar")
-    public String guardarPaciente(@ModelAttribute("paciente") Paciente paciente, Model model,
-            Authentication authentication) {
-        // Verificar si ya existe un paciente con el mismo DNI
-        if (pacienteService.existePacientePorDni(paciente.getDni())) {
-            // Verificar si el usuario es médico para mantener el estado del formulario
-            boolean esMedico = authentication != null && authentication.getAuthorities().stream()
-                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MEDICO"));
-
-            model.addAttribute("esMedico", esMedico);
-            model.addAttribute("paciente", paciente);
-            model.addAttribute("error", "Ya existe un paciente registrado con el DNI: " + paciente.getDni());
-            return "formulario_paciente";
+    @PostMapping("/guardar")
+    public String guardarPaciente(@ModelAttribute Paciente paciente, Model model) {
+        if (pacienteService.existeOtroConDni(paciente.getDni(), null)) {
+            return mostrarFormulario(model, paciente, false,
+                    "Ya existe un paciente registrado con el DNI " + paciente.getDni() + ".");
         }
 
         pacienteService.savePaciente(paciente);
         return "redirect:/pacientes?exito=paciente_guardado";
     }
 
-    @GetMapping("/pacientes/editar/{id}")
-    public String mostrarFormularioEditarPaciente(@PathVariable("id") Long id, Model model,
-            Authentication authentication) {
-        // Verificar si el usuario es médico
-        boolean esMedico = authentication != null && authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MEDICO"));
-
-        model.addAttribute("esMedico", esMedico);
-        model.addAttribute("paciente", pacienteService.getPacienteById(id));
-        return "formulario_paciente";
+    @GetMapping("/editar/{id}")
+    public String editarPaciente(@PathVariable Long id, Model model, Authentication authentication) {
+        Paciente paciente = pacienteService.getPacienteById(id);
+        if (paciente == null) {
+            return "redirect:/pacientes?error=no_encontrado";
+        }
+        return mostrarFormulario(model, paciente, esMedico(authentication), null);
     }
 
-    @PostMapping("/pacientes/editar/{id}")
-    public String guardarEdicionPaciente(@PathVariable("id") Long id, @ModelAttribute("paciente") Paciente paciente,
+    @PostMapping("/editar/{id}")
+    public String actualizarPaciente(@PathVariable Long id, @ModelAttribute Paciente paciente,
             Authentication authentication, Model model) {
-        // Verificar si el usuario es médico
-        boolean esMedico = authentication != null && authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MEDICO"));
-
-        // Si no es médico, validar DNI duplicado (médicos no pueden cambiar datos
-        // personales)
-        if (!esMedico && pacienteService.existePacientePorDniExcluyendoId(paciente.getDni(), id)) {
-            model.addAttribute("esMedico", esMedico);
-            model.addAttribute("paciente", paciente);
-            model.addAttribute("error", "Ya existe otro paciente registrado con el DNI: " + paciente.getDni());
-            return "formulario_paciente";
+        if (esMedico(authentication)) {
+            pacienteService.actualizarHistorial(id, paciente.getHistorialClinico());
+            return "redirect:/pacientes?exito=paciente_actualizado";
         }
 
-        if (esMedico) {
-            // Si es médico, solo actualizar el historial clínico
-            Paciente pacienteExistente = pacienteService.getPacienteById(id);
-            if (pacienteExistente != null) {
-                pacienteExistente.setHistorialClinico(paciente.getHistorialClinico());
-                pacienteService.updatePaciente(id, pacienteExistente);
-            }
-        } else {
-            // Si no es médico, actualizar todos los datos
-            pacienteService.updatePaciente(id, paciente);
+        paciente.setId(id);
+        if (pacienteService.existeOtroConDni(paciente.getDni(), id)) {
+            return mostrarFormulario(model, paciente, false,
+                    "Ya existe otro paciente registrado con el DNI " + paciente.getDni() + ".");
         }
 
+        pacienteService.updatePaciente(id, paciente);
         return "redirect:/pacientes?exito=paciente_actualizado";
     }
 
-    @PostMapping("/pacientes/eliminar/{id}")
-    public String eliminarPaciente(@PathVariable("id") Long id) {
-        boolean eliminado = pacienteService.deleteById(id);
-        if (eliminado) {
+    @PostMapping("/eliminar/{id}")
+    public String eliminarPaciente(@PathVariable Long id) {
+        try {
+            pacienteService.eliminar(id);
             return "redirect:/pacientes?exito=paciente_eliminado";
-        } else {
+        } catch (DataAccessException e) {
             return "redirect:/pacientes?error=no_se_puede_eliminar";
         }
     }
 
+    private String mostrarFormulario(Model model, Paciente paciente, boolean esMedico, String error) {
+        model.addAttribute("paciente", paciente);
+        model.addAttribute("esMedico", esMedico);
+        model.addAttribute("error", error);
+        return "formulario_paciente";
+    }
+
+    private static boolean esMedico(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(autoridad -> autoridad.getAuthority().equals("ROLE_MEDICO"));
+    }
 }

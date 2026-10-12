@@ -2,17 +2,13 @@ package Farmacia.Farmacia.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
+// El POST de /login lo procesa Spring Security (ver UserConfig)
 @Controller
 public class LoginController {
 
     @GetMapping("/login")
-    public String login(
-            @RequestParam(value = "error", required = false) String error,
-            @RequestParam(value = "logout", required = false) String logout,
-            @RequestParam(value = "info", required = false) String info) {
-        
+    public String login() {
         return "login";
     }
 }

@@ -1,66 +1,53 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Médico - SaludSync</title>
-    <link rel="stylesheet" href="/css/styles.css">
-</head>
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
 
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <h1>🏥 SaludSync - Panel Médico</h1>
-        </div>
-        <ul>
-            <li><span th:text="'👨‍⚕️ Dr. ' + ${nombreCompleto}">👨‍⚕️ Dr. Nombre</span></li>
-            <li><a href="/mis-turnos">📅 Mis Turnos</a></li>
-            <li><a href="/pacientes">🧑‍🤝‍🧑 Mis Pacientes</a></li>
-            <li><a href="/logout">🚪 Cerrar Sesión</a></li>
-        </ul>
-    </nav>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('inicio')}"></th:block>
 
-    <div class="medico-container">
-        <div class="medico-header">
-            <div>
-                <h2 th:text="'¡Hola, ' + ${nombreCompleto} + '!'">¡Hola, Doctor!</h2>
-                <p>Bienvenido al panel médico de SaludSync</p>
-            </div>
-            <div class="profile-info">
-                <div class="profile-box">
-                </div>
-            </div>
-        </div>
-
-        <!-- Cards Grid -->
-        <div class="cards-grid">
-            <!-- Card Mis Turnos -->
-            <div class="medico-card card-turnos">
-                <div class="card-icon">📅</div>
-                <div class="card-content">
-                    <h4>Mis Turnos</h4>
-                    <p>Consulta todos tus turnos programados, próximas citas y el historial de consultas realizadas.</p>
-                    <div class="card-actions">
-                        <a href="/mis-turnos" class="btn btn-primary">Ver Mis Turnos</a>
+        <main class="main">
+            <div class="content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title" th:text="'Hola, ' + ${nombreCompleto}">Hola, Doctor</h1>
+                        <p class="page-subtitle" id="fecha-hoy">Bienvenido a tu consultorio en SaludSync.</p>
+                    </div>
+                    <div class="actions">
+                        <a th:href="@{/mis-turnos}" class="btn btn-primary">
+                            <svg class="icon"><use href="/images/icons.svg#calendar"></use></svg> Ver mis turnos
+                        </a>
                     </div>
                 </div>
-            </div>
 
-            <!-- Card Mis Pacientes -->
-            <div class="medico-card card-pacientes">
-                <div class="card-icon">👥</div>
-                <div class="card-content">
-                    <h4>Mis Pacientes</h4>
-                    <p>Accede a la información de tus pacientes, historial médico y datos de contacto.</p>
-                    <div class="card-actions">
-                        <a href="/pacientes" class="btn btn-primary">Ver Pacientes</a>
-                    </div>
+                <div class="grid grid-2">
+                    <a th:href="@{/mis-turnos}" class="card quick-link">
+                        <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#calendar"></use></svg></span>
+                        <span>
+                            <span class="ql-title">Mis turnos</span>
+                            <span class="ql-desc" style="display:block">Próximas consultas, resumen semanal e historial</span>
+                        </span>
+                        <svg class="icon ql-arrow"><use href="/images/icons.svg#arrow-right"></use></svg>
+                    </a>
+                    <a th:href="@{/pacientes}" class="card quick-link">
+                        <span class="stat-icon info"><svg class="icon"><use href="/images/icons.svg#file-text"></use></svg></span>
+                        <span>
+                            <span class="ql-title">Pacientes</span>
+                            <span class="ql-desc" style="display:block">Datos de contacto e historial clínico</span>
+                        </span>
+                        <svg class="icon ql-arrow"><use href="/images/icons.svg#arrow-right"></use></svg>
+                    </a>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+    <script>
+        const f = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        document.getElementById('fecha-hoy').textContent = 'Hoy es ' + f + '.';
+    </script>
 </body>
 
 </html>

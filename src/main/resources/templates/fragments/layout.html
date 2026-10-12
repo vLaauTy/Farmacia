@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Cabecera común: <head th:replace="~{fragments/layout :: head('Título')}"></head> -->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title th:text="${title} + ' · SaludSync'">SaludSync</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230f766e'/%3E%3Cpath d='M10 5h4v5h5v4h-5v5h-4v-5H5v-4h5z' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<body>
+
+    <!-- Navegación lateral según rol. active: inicio | medicos | pacientes | turnos | calendario | mis-turnos | usuarios | correo -->
+    <th:block th:fragment="sidebar(active)">
+        <header class="mobile-bar">
+            <a class="brand" th:href="@{/}">
+                <span class="brand-mark"><svg class="icon"><use href="/images/icons.svg#logo"></use></svg></span>
+                SaludSync
+            </a>
+            <button type="button" class="icon-btn" data-sidebar-toggle aria-label="Abrir menú">
+                <svg class="icon"><use href="/images/icons.svg#menu"></use></svg>
+            </button>
+        </header>
+        <div class="sidebar-backdrop" data-sidebar-toggle></div>
+
+        <aside class="sidebar" id="sidebar">
+            <a class="brand" th:href="@{/}">
+                <span class="brand-mark"><svg class="icon"><use href="/images/icons.svg#logo"></use></svg></span>
+                <span>SaludSync<small>Gestión de turnos médicos</small></span>
+            </a>
+
+            <nav class="nav" aria-label="Principal">
+                <a class="nav-link" th:href="@{/}" th:classappend="${active == 'inicio'} ? 'active'">
+                    <svg class="icon"><use href="/images/icons.svg#dashboard"></use></svg> Inicio
+                </a>
+
+                <th:block sec:authorize="hasRole('ADMIN')">
+                    <div class="nav-label">Gestión</div>
+                    <a class="nav-link" th:href="@{/turnos}" th:classappend="${active == 'turnos'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#calendar"></use></svg> Turnos
+                    </a>
+                    <a class="nav-link" th:href="@{/calendario}" th:classappend="${active == 'calendario'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#calendar-days"></use></svg> Calendario
+                    </a>
+                    <a class="nav-link" th:href="@{/pacientes}" th:classappend="${active == 'pacientes'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#users"></use></svg> Pacientes
+                    </a>
+                    <a class="nav-link" th:href="@{/medicos}" th:classappend="${active == 'medicos'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#stethoscope"></use></svg> Médicos
+                    </a>
+
+                    <div class="nav-label">Sistema</div>
+                    <a class="nav-link" th:href="@{/usuarios}" th:classappend="${active == 'usuarios'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#shield"></use></svg> Usuarios
+                    </a>
+                    <a class="nav-link" th:href="@{/correo-prueba}" th:classappend="${active == 'correo'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#mail"></use></svg> Prueba de correo
+                    </a>
+                </th:block>
+
+                <th:block sec:authorize="hasRole('MEDICO')">
+                    <div class="nav-label">Consultorio</div>
+                    <a class="nav-link" th:href="@{/mis-turnos}" th:classappend="${active == 'mis-turnos'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#calendar"></use></svg> Mis turnos
+                    </a>
+                    <a class="nav-link" th:href="@{/pacientes}" th:classappend="${active == 'pacientes'} ? 'active'">
+                        <svg class="icon"><use href="/images/icons.svg#users"></use></svg> Pacientes
+                    </a>
+                </th:block>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-chip">
+                    <span class="avatar avatar-sm"
+                        th:text="${#strings.substring(#authentication.name, 0, 1)}">A</span>
+                    <div style="min-width:0">
+                        <div class="name" sec:authentication="name">usuario</div>
+                        <div class="role" sec:authorize="hasRole('ADMIN')">Administrador</div>
+                        <div class="role" sec:authorize="hasRole('MEDICO')">Médico</div>
+                    </div>
+                </div>
+                <a class="icon-btn" th:href="@{/logout}" title="Cerrar sesión" aria-label="Cerrar sesión">
+                    <svg class="icon"><use href="/images/icons.svg#log-out"></use></svg>
+                </a>
+            </div>
+        </aside>
+    </th:block>
+
+    <!-- Modal de confirmación + scripts comunes -->
+    <th:block th:fragment="scripts">
+        <div class="modal" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <div class="modal-dialog">
+                <div class="modal-body">
+                    <span class="modal-icon"><svg class="icon"><use href="/images/icons.svg#alert"></use></svg></span>
+                    <div>
+                        <h3 id="confirm-title">¿Confirmar acción?</h3>
+                        <p id="confirm-text"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-modal-close>Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-ok">Confirmar</button>
+                </div>
+            </div>
+        </div>
+        <script th:src="@{/js/app.js}"></script>
+    </th:block>
+
+</body>
+
+</html>

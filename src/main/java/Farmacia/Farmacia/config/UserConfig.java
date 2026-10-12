@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
+import Farmacia.Farmacia.Repository.UserRepository;
 import Farmacia.Farmacia.Service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -18,50 +19,49 @@ import jakarta.servlet.http.HttpServletResponse;
 public class UserConfig {
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new CustomUserDetailsService();
+    UserDetailsService userDetailsService(UserRepository userRepository) {
+        return new CustomUserDetailsService(userRepository);
     }
 
+    // Las contraseñas se guardan sin encriptar
     @Bean
     @SuppressWarnings("deprecation")
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
 
+    // Permisos por rol. Las reglas se evalúan en orden: la primera que coincide gana.
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/pacientes/nuevo", "/pacientes/guardar", "/pacientes/eliminar/**")
+                        .hasRole("ADMIN")
                         .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "MEDICO")
                         .requestMatchers("/mis-turnos").hasRole("MEDICO")
-                        .requestMatchers("/medicos/**", "/turnos/**", "/usuarios/**").hasRole("ADMIN")
-                        .requestMatchers("/").authenticated()
+                        .requestMatchers("/medicos/**", "/turnos/**", "/calendario", "/usuarios/**",
+                                "/correo-prueba")
+                        .hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .loginProcessingUrl("/login")
                         .failureUrl("/login?error=true")
                         .defaultSuccessUrl("/", true)
-                        .usernameParameter("username")
-                        .passwordParameter("password")
                         .permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID"))
-                .csrf(c -> c.disable())
-                .exceptionHandling(e -> e
-                        .accessDeniedHandler(customAccessDeniedHandler()));
+                        .logoutSuccessUrl("/login?logout=true"))
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(e -> e.accessDeniedHandler(accessDeniedHandler()));
         return http.build();
     }
 
     @Bean
-    public AccessDeniedHandler customAccessDeniedHandler() {
+    AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.setContentType("application/json");
+            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write(
                     "{\"error\": \"Acceso denegado: no tienes permisos para este recurso.\"}");
         };

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Prueba de correo')}"></head>
+
+<body>
+    <div class="app">
+        <th:block th:replace="~{fragments/layout :: sidebar('correo')}"></th:block>
+
+        <main class="main">
+            <div class="content-narrow">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Prueba de correo</h1>
+                        <p class="page-subtitle">Verificá que la configuración SMTP funcione antes de agendar turnos.</p>
+                    </div>
+                </div>
+
+                <div th:if="${mensaje}" class="alert alert-success" role="status">
+                    <svg class="icon"><use href="/images/icons.svg#check"></use></svg>
+                    <div class="alert-body" th:text="${mensaje}"></div>
+                </div>
+                <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <svg class="icon"><use href="/images/icons.svg#alert"></use></svg>
+                    <div class="alert-body" th:text="${error}"></div>
+                </div>
+
+                <form class="card" th:action="@{/correo-prueba}" method="post">
+                    <section class="form-section">
+                        <div class="form-section-head">
+                            <span class="stat-icon"><svg class="icon"><use href="/images/icons.svg#mail"></use></svg></span>
+                            <div>
+                                <h3>Enviar correo de prueba</h3>
+                                <p>Se enviará un mensaje corto usando la cuenta configurada en el archivo <code>.env</code>.</p>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="destinatario">Destinatario</label>
+                            <input type="email" id="destinatario" name="destinatario" th:value="${destinatario}"
+                                placeholder="persona@ejemplo.com" autocomplete="email" required>
+                        </div>
+                    </section>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="icon"><use href="/images/icons.svg#send"></use></svg> Enviar prueba
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>
